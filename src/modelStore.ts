@@ -14,7 +14,7 @@ const emptyModel: Model = {
   },
   groundSlab: {
     thickness: 300,
-    angle: 30,
+    angle: 15,
   },
   grounds: [
     {
