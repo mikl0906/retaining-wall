@@ -1,9 +1,12 @@
 import { ThemeProvider } from "./components/theme-provider";
+import { ModelCanvas } from "./ModelCanvas";
 
 export function App() {
   return (
     <ThemeProvider>
-      <h1>Vite</h1>
+      <div className="absolute w-full h-full">
+        <ModelCanvas />
+      </div>
     </ThemeProvider>
   );
 }
