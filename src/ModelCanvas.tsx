@@ -1,9 +1,9 @@
+import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { CameraControls, Edges, PerspectiveCamera } from "@react-three/drei";
 import { useModel } from "./modelStore";
-import { Euler, Object3D, Vector3 } from "three";
 
-Object3D.DEFAULT_UP.set(0, 0, 1);
+THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
 
 export function ModelCanvas() {
   const model = useModel();
@@ -27,6 +27,7 @@ export function ModelCanvas() {
   return (
     <Canvas>
       <ambientLight />
+      <directionalLight position={[3, 10, 0]} />
       <PerspectiveCamera makeDefault position={5000} near={1} far={10000000} />
       <axesHelper args={[1000]} />
       <CameraControls
@@ -62,8 +63,8 @@ export function ModelCanvas() {
             model.groundSlab.thickness / 2 -
             totalHeight / 2,
         ]}
-        rotation={new Euler().setFromVector3(
-          new Vector3((model.groundSlab.angle / 180) * Math.PI, 0, 0),
+        rotation={new THREE.Euler().setFromVector3(
+          new THREE.Vector3((model.groundSlab.angle / 180) * Math.PI, 0, 0),
         )}
       >
         <boxGeometry args={[1000, 2000, model.groundSlab.thickness]} />
@@ -92,6 +93,32 @@ export function ModelCanvas() {
           offsetZ={-totalHeight / 2 + groundRightHeights[index]}
         />
       ))}
+      <Load
+        polygon={[
+          new THREE.Vector3(
+            500,
+            model.wall.thickness / 2,
+            -totalHeight / 2 + groundRightHeights[0],
+          ),
+          new THREE.Vector3(
+            500,
+            model.wall.thickness / 2,
+            -totalHeight / 2 + model.foundation.thickness,
+          ),
+          new THREE.Vector3(
+            -500,
+            model.wall.thickness / 2,
+            -totalHeight / 2 + model.foundation.thickness,
+          ),
+          new THREE.Vector3(
+            -500,
+            model.wall.thickness / 2,
+            -totalHeight / 2 + groundRightHeights[0],
+          ),
+        ]}
+        normal={new THREE.Vector3(0, 1, 0)}
+        magnitude={1}
+      />
     </Canvas>
   );
 }
@@ -123,8 +150,48 @@ function GroundLevel({ width, offsetY, offsetZ }: GroundLevelProps) {
   return (
     <mesh position={[0, offsetY, offsetZ]}>
       <planeGeometry args={[1000, width]} />
-      <meshStandardMaterial color="brown" transparent opacity={0.1} />
+      <meshStandardMaterial
+        color="brown"
+        transparent
+        opacity={0.1}
+        side={THREE.DoubleSide}
+      />
       <Edges color="brown" />
     </mesh>
   );
 }
+
+interface LoadProps {
+  polygon: THREE.Vector3[];
+  normal: THREE.Vector3;
+  magnitude: number;
+}
+
+const coneGeometry = new THREE.ConeGeometry(20, 100, 12);
+coneGeometry.translate(0, -50, 0);
+coneGeometry.rotateX(-Math.PI / 2);
+const coneMaterial = new THREE.MeshStandardMaterial({ color: "green" });
+const coneMesh = new THREE.Mesh(coneGeometry, coneMaterial);
+
+function Load({ polygon, normal, magnitude }: LoadProps) {
+  return (
+    <group position={[1000, 0, 0]}>
+      <primitive object={coneMesh} />
+    </group>
+  );
+}
+
+// interface LoadArrowProps {
+//   magnitude: number;
+// }
+
+// function LoadArrow({ magnitude }: LoadArrowProps) {
+//   return (
+//     <group>
+//       <primitive object={coneMesh} />
+//       <mesh>
+
+//       </mesh>
+//     </group>
+//   );
+// }
