@@ -33,7 +33,12 @@ export function ModelCanvas() {
     <Canvas>
       <ambientLight />
       <directionalLight position={[3, 10, 0]} />
-      <PerspectiveCamera makeDefault position={5000} near={1} far={10000000} />
+      <PerspectiveCamera
+        makeDefault
+        position={[7000, 2000, 2000]}
+        near={1}
+        far={10000000}
+      />
       <axesHelper args={[1000]} />
       <CameraControls
         makeDefault

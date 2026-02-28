@@ -16,13 +16,13 @@ const emptyModel: Model = {
     thickness: 300,
     angle: 15,
   },
-  grounds: [
+  materials: [
     {
       id: "bacf7a0a-c6af-428e-b946-5c7809b51dab",
-      name: "Default Ground",
+      name: "Sand",
       weight: 18,
-      fi: 35,
-      alfa: 0,
+      phi: 35,
+      alpha: 0,
     },
   ],
   groundLeft: [

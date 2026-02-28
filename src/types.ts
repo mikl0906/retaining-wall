@@ -20,8 +20,8 @@ const Ground = z.object({
   id: z.string(),
   name: z.string(),
   weight: z.number(), // kN/m³
-  fi: z.number(), // angle of internal friction in degrees
-  alfa: z.number(), // degrees
+  phi: z.number(), // angle of internal friction in degrees
+  alpha: z.number(), // degrees
 });
 
 const GroundLayer = z.object({
@@ -32,7 +32,7 @@ const GroundLayer = z.object({
 const Model = z.object({
   name: z.string(),
   // Library
-  grounds: z.array(Ground),
+  materials: z.array(Ground),
   // Geometry
   wall: Wall,
   foundation: Foundation,
