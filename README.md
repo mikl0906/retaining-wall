@@ -2,7 +2,7 @@
 
 A small web app for calculation of a retaining wall.
 
-retainingwall.fly.dev
+[Web app](retainingwall.fly.dev)
 
 ## Features
 - Save model to a json file
