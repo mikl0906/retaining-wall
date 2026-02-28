@@ -40,15 +40,15 @@ export function App() {
 function Menu() {
   return (
     <ButtonGroup>
-      <Button size="sm" variant="outline">
+      <Button variant="outline">
         <Upload />
         Open
       </Button>
-      <Button size="sm" variant="outline">
+      <Button variant="outline">
         <Download />
         Save
       </Button>
-      <Button size="sm" variant="outline">
+      <Button variant="outline">
         <Printer />
         Print
       </Button>
@@ -107,18 +107,20 @@ function Loads() {
             <p className="flex-1">
               Dead load factor γ<sub>DL</sub>
             </p>
-            <Input className="w-30" />
+            <Input className="w-30" placeholder="Value" />
           </div>
           <div className="flex gap-2 items-center">
             <p className="flex-1">
               Live load factor γ<sub>LL</sub>
             </p>
-            <Input className="w-30" />
+            <Input className="w-30" placeholder="Value" />
           </div>
           <div className="flex gap-2 items-center">
             <p className="flex-1">Live load q</p>
-            <Input className="w-30" />
-            <p>kN / m2</p>
+            <Input className="w-30" placeholder="Value" />
+            <p>
+              kN / m<sup>2</sup>
+            </p>
           </div>
         </div>
       </CardContent>
@@ -132,7 +134,18 @@ function Results() {
       <CardHeader>
         <CardTitle>Results</CardTitle>
       </CardHeader>
-      <CardContent></CardContent>
+      <CardContent>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2 items-center">
+            <p className="flex-1">Overturn</p>
+            <p className="text-green-500">86%</p>
+          </div>
+          <div className="flex gap-2 items-center">
+            <p className="flex-1">Sliding</p>
+            <p className="text-green-500">72%</p>
+          </div>
+        </div>
+      </CardContent>
     </Card>
   );
 }
