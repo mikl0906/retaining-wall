@@ -44,7 +44,7 @@ export function ModelCanvas() {
         makeDefault
         truckSpeed={0}
         dollySpeed={3}
-        minDistance={500}
+        minDistance={2000}
         maxDistance={20000}
         draggingSmoothTime={0.1}
       />
