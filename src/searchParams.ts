@@ -1,3 +1,5 @@
+// A custom storage implementation that uses URL search parameters to store data.
+
 const getSearchParams = () => {
   return new URL(location.href).searchParams;
 };

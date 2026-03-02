@@ -1,21 +1,5 @@
 import * as z from "zod";
 
-const Wall = z.object({
-  height: z.number(),
-  thickness: z.number(),
-});
-
-const Foundation = z.object({
-  left: z.number(),
-  right: z.number(),
-  thickness: z.number(),
-});
-
-const groundSlab = z.object({
-  thickness: z.number(),
-  angle: z.number(),
-});
-
 const GroundMaterial = z.object({
   id: z.string(),
   name: z.string(),
@@ -32,19 +16,30 @@ const GroundLayer = z.object({
 
 const Model = z.object({
   name: z.string(),
-  // Library
-  materials: z.array(GroundMaterial),
   // Geometry
-  wall: Wall,
-  foundation: Foundation,
-  groundSlab: groundSlab,
-  groundLeft: z.array(GroundLayer),
-  groundRight: z.array(GroundLayer),
+  wall: z.object({
+    height: z.number(),
+    thickness: z.number(),
+  }),
+  foundation: z.object({
+    left: z.number(),
+    right: z.number(),
+    thickness: z.number(),
+  }),
+  slab: z.object({
+    thickness: z.number(),
+    angle: z.number(),
+  }),
   // Loads
   gammaDL: z.number(), // Partial factor for dead load
   gammaLL: z.number(), // Partial factor for live load
   gammaGdst: z.number(), // Partial factor for destabilizing load
   gammaGstb: z.number(), // Partial factor for stabilizing load
   liveLoad: z.number(), // Live load in kN/m²
+  // Library
+  materials: z.array(GroundMaterial),
+  // Ground layers
+  groundLeft: z.array(GroundLayer),
+  groundRight: z.array(GroundLayer),
 });
 export type Model = z.infer<typeof Model>;
