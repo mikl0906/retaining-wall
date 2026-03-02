@@ -16,13 +16,14 @@ const groundSlab = z.object({
   angle: z.number(),
 });
 
-const Ground = z.object({
+const GroundMaterial = z.object({
   id: z.string(),
   name: z.string(),
   weight: z.number(), // kN/m³
   phi: z.number(), // angle of internal friction in degrees
   alpha: z.number(), // degrees
 });
+export type GroundMaterial = z.infer<typeof GroundMaterial>;
 
 const GroundLayer = z.object({
   thickness: z.number(), // height of this layer in mm
@@ -32,7 +33,7 @@ const GroundLayer = z.object({
 const Model = z.object({
   name: z.string(),
   // Library
-  materials: z.array(Ground),
+  materials: z.array(GroundMaterial),
   // Geometry
   wall: Wall,
   foundation: Foundation,

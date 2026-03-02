@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useModel } from "./modelStore";
+import { addMaterial, useModel } from "./modelStore";
 import { Input } from "./components/ui/input";
 
 export function App() {
@@ -58,12 +58,23 @@ function Menu() {
 
 function Materials() {
   const model = useModel();
+
+  const handleAddMaterial = () => {
+    addMaterial({
+      id: crypto.randomUUID(),
+      name: "New material",
+      weight: 18,
+      phi: 35,
+      alpha: 0,
+    });
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Ground materials</CardTitle>
         <CardAction>
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" onClick={handleAddMaterial}>
             <Plus />
             Add
           </Button>

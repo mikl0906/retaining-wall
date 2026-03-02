@@ -1,5 +1,7 @@
 import { create } from "zustand";
-import type { Model } from "./types";
+import type { GroundMaterial, Model } from "./types";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { searchParamsStorage } from "./searchParams";
 
 const emptyModel: Model = {
   name: "",
@@ -48,4 +50,16 @@ const emptyModel: Model = {
   liveLoad: 5,
 };
 
-export const useModel = create<Model>()(() => emptyModel);
+export const useModel = create<Model>()(
+  persist(() => emptyModel, {
+    name: "model",
+    storage: createJSONStorage(() => searchParamsStorage),
+  }),
+);
+
+export const addMaterial = (material: GroundMaterial) => {
+  useModel.setState((state) => ({
+    ...state,
+    materials: [...state.materials, material],
+  }));
+};
