@@ -6,6 +6,8 @@ import { ConcreteBox } from "./ConcreteBox";
 import { GroundLevel } from "./GroundLevel";
 import { AreaLoad } from "./AreaLoad";
 
+// Z direction is up (common for engineering)
+// World length unit is 1 mm (common for engineering)
 THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
 
 export function ModelCanvas() {
