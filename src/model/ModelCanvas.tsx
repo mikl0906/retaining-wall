@@ -3,7 +3,6 @@ import { Canvas } from "@react-three/fiber";
 import { CameraControls, Edges, PerspectiveCamera } from "@react-three/drei";
 import { useModel } from "../modelStore";
 import { ConcreteBox } from "./ConcreteBox";
-import { GroundLevel } from "./GroundLevel";
 import { AreaLoad } from "./AreaLoad";
 
 // Z direction is up (common for engineering)
@@ -16,17 +15,33 @@ export function ModelCanvas() {
   const totalHeight = model.wall.height + model.foundation.thickness;
 
   const groundLeftHeights: number[] = [];
-  let currentHeight = 0;
+  let current = 0;
   for (const layer of model.groundLeft) {
-    currentHeight += layer.thickness;
-    groundLeftHeights.push(currentHeight);
+    current += layer.thickness;
+    groundLeftHeights.push(current);
   }
 
   const groundRightHeights: number[] = [];
-  currentHeight = 0;
+  current = 0;
   for (const layer of model.groundRight) {
-    currentHeight += layer.thickness;
-    groundRightHeights.push(currentHeight);
+    current += layer.thickness;
+    groundRightHeights.push(current);
+  }
+
+  const groundLeftLevels: number[] = [];
+  current = 0;
+  for (const layer of model.groundLeft) {
+    current += layer.thickness / 2;
+    groundLeftLevels.push(current);
+    current += layer.thickness / 2;
+  }
+
+  const groundRightLevels: number[] = [];
+  current = 0;
+  for (const layer of model.groundRight) {
+    current += layer.thickness / 2;
+    groundRightLevels.push(current);
+    current += layer.thickness / 2;
   }
 
   return (
@@ -81,36 +96,40 @@ export function ModelCanvas() {
         <meshStandardMaterial color="gray" transparent opacity={0.5} />
         <Edges color="gray" />
       </mesh>
-      {/* Bottol ground levels */}
-      <GroundLevel
-        width={model.wall.thickness + 4000}
-        offsetY={0}
-        offsetZ={-totalHeight / 2}
-      />
-      {/* Left ground layers */}
-      {model.groundLeft.map((_, index) => (
-        <GroundLevel
+      {model.groundLeft.map((layer, index) => (
+        <mesh
+          position={[
+            0,
+            -1000 - model.wall.thickness / 2,
+            -totalHeight / 2 + groundLeftLevels[index],
+          ]}
           key={index}
-          width={2000}
-          offsetY={-model.wall.thickness / 2 - 1000}
-          offsetZ={-totalHeight / 2 + groundLeftHeights[index]}
-        />
+        >
+          <boxGeometry args={[1000, 2000, layer.thickness]} />
+          <meshStandardMaterial color={"brown"} transparent opacity={0.5} />
+          <Edges color="brown" />
+        </mesh>
       ))}
-      {/* Right ground layers */}
-      {model.groundRight.map((_, index) => (
-        <GroundLevel
+      {model.groundRight.map((layer, index) => (
+        <mesh
+          position={[
+            0,
+            1000 + model.wall.thickness / 2,
+            -totalHeight / 2 + groundRightLevels[index],
+          ]}
           key={index}
-          width={2000}
-          offsetY={model.wall.thickness / 2 + 1000}
-          offsetZ={-totalHeight / 2 + groundRightHeights[index]}
-        />
+        >
+          <boxGeometry args={[1000, 2000, layer.thickness]} />
+          <meshStandardMaterial color={"brown"} transparent opacity={0.5} />
+          <Edges color="brown" />
+        </mesh>
       ))}
       <AreaLoad
         polygon={[
           {
             x: 500,
             y: model.wall.thickness / 2,
-            z: -totalHeight / 2 + groundRightHeights[0],
+            z: -totalHeight / 2 + groundRightLevels[0],
             value: 1,
           },
           {

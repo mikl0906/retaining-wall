@@ -1,4 +1,3 @@
-import { ThemeProvider } from "./components/theme-provider";
 import { ModelCanvas } from "./model/ModelCanvas";
 import { Menu } from "./ui/Menu";
 import { MaterialsCard } from "./ui/MaterialsCard";
@@ -12,9 +11,10 @@ import {
   DrawerTitle,
 } from "./components/ui/drawer";
 import { useMediaQuery } from "usehooks-ts";
-import { useEffect, useRef, useState } from "react";
-import { useModel } from "./modelStore";
-import { getEta } from "./reports";
+import { useState } from "react";
+import { Toaster } from "sonner";
+import { ThemeProvider, useTheme } from "./context/ThemeContext";
+// import { ReportPreview } from "./ui/ReportPreview";
 
 export function App() {
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -25,9 +25,10 @@ export function App() {
         <ModelCanvas />
       </div>
       {isDesktop ? <DesktopUI /> : <MobileUI />}
-      <div className="absolute w-[50%] h-[50%] right-2 bottom-2">
-        <ReportViewer />
-      </div>
+      {/* <div className="absolute w-[50%] h-[50%] right-2 bottom-2">
+        <ReportPreview />
+      </div> */}
+      <ToasterWrapper />
     </ThemeProvider>
   );
 }
@@ -77,22 +78,7 @@ export function MobileUI() {
   );
 }
 
-function ReportViewer() {
-  const frameRef = useRef<HTMLIFrameElement | null>(null);
-  const model = useModel();
-
-  useEffect(() => {
-    if (!frameRef.current) return;
-
-    const updateFrame = async () => {
-      const eta = await getEta();
-      const template = await fetch("/report.eta").then((res) => res.text());
-      const html = eta.renderString(template, { model: model });
-
-      frameRef.current!.srcdoc = html;
-    };
-    updateFrame();
-  }, [frameRef, model]);
-
-  return <iframe ref={frameRef} className="bg-white h-full w-full"></iframe>;
+function ToasterWrapper() {
+  const { theme } = useTheme();
+  return <Toaster richColors theme={theme} />;
 }

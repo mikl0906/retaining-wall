@@ -21,7 +21,7 @@ export const printHtmlToPdf = (html: string) => {
 
   const doc = iframe.contentWindow!.document;
   doc.open();
-  doc.write(html);
+  doc.writeln(html);
   doc.close();
 
   iframe.contentWindow!.focus();
@@ -31,6 +31,12 @@ export const printHtmlToPdf = (html: string) => {
   setTimeout(() => {
     document.body.removeChild(iframe);
   }, 1000);
+};
+
+export const getReportHtml = async (model: Model) => {
+  const eta = await getEta();
+  const template = await fetch("/report.eta").then((res) => res.text());
+  return eta.renderString(template, { model });
 };
 
 export const generateReport = async (model: Model) => {

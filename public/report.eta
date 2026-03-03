@@ -2,8 +2,15 @@
   <head>
     <title>Retaining Wall Calculation Report</title>
   </head>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 20mm;
+    }
+  </style>
 
-  <body style="font-family: Arial, sans-serif; margin: 4rem;">
+
+  <body style="font-family: Arial, sans-serif;">
     <h1>Retaining Wall Calculation Report</h1>
     <p>Project: <%=it.model.project%></p>
     <p>Part: <%=it.model.part%></p>
