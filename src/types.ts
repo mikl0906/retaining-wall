@@ -15,7 +15,10 @@ const GroundLayer = z.object({
 });
 
 const Model = z.object({
-  name: z.string(),
+  project: z.string().default("Untitled project"),
+  part: z.string().default(""),
+  author: z.string().default(""),
+  date: z.string().default(() => new Date().toISOString()),
   // Geometry
   wall: z.object({
     height: z.number(),

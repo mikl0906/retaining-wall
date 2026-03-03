@@ -4,7 +4,10 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { searchParamsStorage } from "./searchParams";
 
 const emptyModel: Model = {
-  name: "",
+  project: "New project",
+  part: "",
+  author: "",
+  date: new Date().getUTCDate().toString(),
   wall: {
     height: 3000,
     thickness: 300,

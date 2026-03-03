@@ -1,0 +1,53 @@
+<html>
+  <head>
+    <title>Retaining Wall Calculation Report</title>
+  </head>
+
+  <body style="font-family: Arial, sans-serif; margin: 4rem;">
+    <h1>Retaining Wall Calculation Report</h1>
+    <p>Project: <%=it.model.project%></p>
+    <p>Part: <%=it.model.part%></p>
+    <p>Author: <%=it.model.author%></p>
+    <p>Date: <%=it.model.date%></p>
+
+    <h2>Geometry</h2>
+    <p>Wall height: <%=it.model.wall.height%> mm</p>
+    <p>Wall thickness: <%=it.model.wall.thickness%> mm</p>
+    <p>Foundation left: <%=it.model.foundation.left%> mm</p>
+    <p>Foundation right: <%=it.model.foundation.right%> mm</p>
+    <p>Foundation thickness: <%=it.model.foundation.thickness%> mm</p>
+
+    <h2>Partial factors</h2>
+    <p>Dead load γ<sub>g</sub>: <%=it.model.gammaDL%></p>
+    <p>Live load γ<sub>q</sub>: <%=it.model.gammaLL%></p>
+    <p>Destabilizing load γ<sub>dstb</sub>: <%=it.model.gammaGdst%></p>
+    <p>Stabilizing load γ<sub>stb</sub>: <%=it.model.gammaGstb%></p>
+
+    <h2>Loads</h2>
+    <p>Live load: <%=it.model.liveLoad%> kN/m<sup>2</sup></p>
+
+    <h2>Materials</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Material</th>
+          <th>Weight (kN/m<sup>3</sup>)</th>
+          <th>Friction angle (°)</th>
+          <th>Alpha (°)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% it.model.materials.forEach((mat) => { %>
+          <tr>
+            <td><%= mat.name %></td>
+            <td><%= mat.weight %></td>
+            <td><%= mat.phi %></td>
+            <td><%= mat.alpha %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <h2>Results</h2>
+  </body>
+</html>
