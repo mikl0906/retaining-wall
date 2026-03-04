@@ -13,23 +13,24 @@ import {
 import { useMediaQuery } from "usehooks-ts";
 import { useState } from "react";
 import { Toaster } from "sonner";
-import { ThemeProvider, useTheme } from "./context/ThemeContext";
+import { useTheme } from "./context/ThemeContext";
 // import { ReportPreview } from "./ui/ReportPreview";
 
 export function App() {
+  const { theme } = useTheme();
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   return (
-    <ThemeProvider>
+    <>
       <div className="absolute w-full h-full">
         <ModelCanvas />
       </div>
       {isDesktop ? <DesktopUI /> : <MobileUI />}
       {/* <div className="absolute w-[50%] h-[50%] right-2 bottom-2">
         <ReportPreview />
-      </div> */}
-      <ToasterWrapper />
-    </ThemeProvider>
+        </div> */}
+      <Toaster richColors theme={theme} />
+    </>
   );
 }
 
@@ -76,9 +77,4 @@ export function MobileUI() {
       </DrawerContent>
     </Drawer>
   );
-}
-
-function ToasterWrapper() {
-  const { theme } = useTheme();
-  return <Toaster richColors theme={theme} />;
 }
