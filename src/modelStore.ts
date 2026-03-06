@@ -19,7 +19,7 @@ const emptyModel: Model = {
   },
   slab: {
     thickness: 300,
-    angle: 15,
+    angle: 10,
   },
   materials: [
     {

@@ -21,17 +21,17 @@ const Model = z.object({
   date: z.string().default(() => new Date().toISOString()),
   // Geometry
   wall: z.object({
-    height: z.number(),
-    thickness: z.number(),
+    height: z.number(), // in mm
+    thickness: z.number(), // in mm
   }),
   foundation: z.object({
-    left: z.number(),
-    right: z.number(),
-    thickness: z.number(),
+    left: z.number(), // in mm
+    right: z.number(), // in mm
+    thickness: z.number(), // in mm
   }),
   slab: z.object({
-    thickness: z.number(),
-    angle: z.number(),
+    thickness: z.number(), // in mm
+    angle: z.number(), // in degrees, positive means sloping upwards to the right
   }),
   // Loads
   gammaDL: z.number(), // Partial factor for dead load

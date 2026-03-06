@@ -16,7 +16,7 @@ export function ConcreteBox({
   return (
     <mesh position={[0, offsetY, offsetZ]}>
       <boxGeometry args={[1000, width, height]} />
-      <meshStandardMaterial color="gray" transparent opacity={0.5} />
+      <meshStandardMaterial color="gray" />
       <Edges color="gray" />
     </mesh>
   );

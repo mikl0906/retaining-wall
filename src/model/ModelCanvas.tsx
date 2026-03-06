@@ -2,52 +2,119 @@ import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { CameraControls, Edges, PerspectiveCamera } from "@react-three/drei";
 import { useModel } from "../modelStore";
-import { ConcreteBox } from "./ConcreteBox";
 import { AreaLoad } from "./AreaLoad";
+import { cutGeometryByPart, cutGeometryByPlane } from "@/manifold";
 
 // Z direction is up (common for engineering)
 // World length unit is 1 mm (common for engineering)
 THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
 
+const concreteMaterial = new THREE.MeshStandardMaterial({
+  color: "gray",
+  transparent: true,
+  opacity: 0.5,
+});
+
+const soilMaterial = new THREE.MeshStandardMaterial({
+  color: "orange",
+  transparent: true,
+  opacity: 0.5,
+});
+
 export function ModelCanvas() {
   const model = useModel();
 
   const totalHeight = model.wall.height + model.foundation.thickness;
+  const tanAlpha = Math.tan((model.slab.angle / 180) * Math.PI);
 
-  const groundLeftHeights: number[] = [];
+  const foundation = new THREE.BoxGeometry(
+    1000,
+    model.foundation.left + model.wall.thickness + model.foundation.right,
+    model.foundation.thickness,
+  );
+  foundation.translate(
+    0,
+    (model.foundation.right - model.foundation.left) / 2,
+    -totalHeight / 2 + model.foundation.thickness / 2,
+  );
+
+  const groundLeftTop: number[] = [];
+  const groundLeftMiddle: number[] = [];
+  const groundLeft: THREE.BufferGeometry[] = [];
   let current = 0;
   for (const layer of model.groundLeft) {
-    current += layer.thickness;
-    groundLeftHeights.push(current);
-  }
-
-  const groundRightHeights: number[] = [];
-  current = 0;
-  for (const layer of model.groundRight) {
-    current += layer.thickness;
-    groundRightHeights.push(current);
-  }
-
-  const groundLeftLevels: number[] = [];
-  current = 0;
-  for (const layer of model.groundLeft) {
     current += layer.thickness / 2;
-    groundLeftLevels.push(current);
+    groundLeftMiddle.push(current);
     current += layer.thickness / 2;
+    groundLeftTop.push(current);
+
+    const geometry = new THREE.BoxGeometry(1000, 2000, layer.thickness);
+    geometry.translate(
+      0,
+      -1000 - model.wall.thickness / 2,
+      -totalHeight / 2 + current - layer.thickness / 2,
+    );
+    groundLeft.push(cutGeometryByPart(geometry, foundation));
   }
 
-  const groundRightLevels: number[] = [];
+  const groundRightTop: number[] = [];
+  const groundRightMiddle: number[] = [];
+  const groundRight: THREE.BufferGeometry[] = [];
   current = 0;
+  let i = 0;
   for (const layer of model.groundRight) {
     current += layer.thickness / 2;
-    groundRightLevels.push(current);
+    groundRightMiddle.push(current);
     current += layer.thickness / 2;
+    groundRightTop.push(current);
+
+    const isTopLayer = i == model.groundRight.length - 1;
+    const addHeight = isTopLayer ? 2000 * tanAlpha : 0;
+
+    const geometry = new THREE.BoxGeometry(
+      1000,
+      2000,
+      layer.thickness + addHeight,
+    );
+    geometry.translate(
+      0,
+      1000 + model.wall.thickness / 2,
+      -totalHeight / 2 + current - layer.thickness / 2 + addHeight / 2,
+    );
+
+    let g = cutGeometryByPart(geometry, foundation);
+
+    if (isTopLayer) {
+      // Construct a plane to cut the top layer with slope
+      const planeMatrix = new THREE.Matrix4().makeRotationX(
+        Math.atan(tanAlpha),
+      );
+      planeMatrix.setPosition(
+        0,
+        1000 + model.wall.thickness / 2,
+        -totalHeight / 2 + current + addHeight / 2,
+      );
+
+      g = cutGeometryByPlane(g, planeMatrix);
+    }
+    groundRight.push(g);
+    i++;
   }
+  const rightTop = current;
+
+  const slabBox = new THREE.BoxGeometry(1000, 2000, model.slab.thickness);
+  const slabMatrix = new THREE.Matrix4().makeShear(0, 0, 0, tanAlpha, 0, 0);
+  slabMatrix.setPosition(
+    0,
+    model.wall.thickness / 2 + 1000,
+    -totalHeight / 2 + rightTop + model.slab.thickness / 2 + tanAlpha * 1000,
+  );
+  slabBox.applyMatrix4(slabMatrix);
 
   return (
     <Canvas>
       <ambientLight />
-      <directionalLight position={[3, 10, 0]} />
+      <directionalLight position={[3, 0, 10]} />
       <PerspectiveCamera
         makeDefault
         position={[7000, 2000, 2000]}
@@ -64,64 +131,31 @@ export function ModelCanvas() {
         draggingSmoothTime={0.1}
       />
       {/* Wall */}
-      <ConcreteBox
-        height={model.wall.height}
-        width={model.wall.thickness}
-        offsetY={0}
-        offsetZ={totalHeight / 2 - model.wall.height / 2}
-      />
-      {/* Foundation */}
-      <ConcreteBox
-        height={model.foundation.thickness}
-        width={
-          model.foundation.left + model.wall.thickness + model.foundation.right
-        }
-        offsetY={(model.foundation.right - model.foundation.left) / 2}
-        offsetZ={-totalHeight / 2 + model.foundation.thickness / 2}
-      />
-      {/* Ground Slab */}
       <mesh
-        position={[
-          0,
-          model.wall.thickness / 2 + 1000,
-          groundRightHeights[groundRightHeights.length - 1] +
-            model.slab.thickness / 2 -
-            totalHeight / 2,
-        ]}
-        rotation={new THREE.Euler().setFromVector3(
-          new THREE.Vector3((model.slab.angle / 180) * Math.PI, 0, 0),
-        )}
+        position={[0, 0, model.foundation.thickness / 2]}
+        material={concreteMaterial}
       >
-        <boxGeometry args={[1000, 2000, model.slab.thickness]} />
-        <meshStandardMaterial color="gray" transparent opacity={0.5} />
+        <boxGeometry args={[1000, model.wall.thickness, model.wall.height]} />
         <Edges color="gray" />
       </mesh>
-      {model.groundLeft.map((layer, index) => (
-        <mesh
-          position={[
-            0,
-            -1000 - model.wall.thickness / 2,
-            -totalHeight / 2 + groundLeftLevels[index],
-          ]}
-          key={index}
-        >
-          <boxGeometry args={[1000, 2000, layer.thickness]} />
-          <meshStandardMaterial color={"brown"} transparent opacity={0.5} />
-          <Edges color="brown" />
+      {/* Foundation */}
+      <mesh geometry={foundation} material={concreteMaterial}>
+        <Edges color="gray" />
+      </mesh>
+      {/* Ground Slab */}
+      <mesh geometry={slabBox} material={concreteMaterial}>
+        <Edges color="gray" />
+      </mesh>
+      {/* Ground left */}
+      {groundLeft.map((geometry, index) => (
+        <mesh key={index} geometry={geometry} material={soilMaterial}>
+          <Edges color="orange" />
         </mesh>
       ))}
-      {model.groundRight.map((layer, index) => (
-        <mesh
-          position={[
-            0,
-            1000 + model.wall.thickness / 2,
-            -totalHeight / 2 + groundRightLevels[index],
-          ]}
-          key={index}
-        >
-          <boxGeometry args={[1000, 2000, layer.thickness]} />
-          <meshStandardMaterial color={"brown"} transparent opacity={0.5} />
-          <Edges color="brown" />
+      {/* Ground right */}
+      {groundRight.map((geometry, index) => (
+        <mesh key={index} geometry={geometry} material={soilMaterial}>
+          <Edges color="orange" />
         </mesh>
       ))}
       <AreaLoad
@@ -129,7 +163,7 @@ export function ModelCanvas() {
           {
             x: 500,
             y: model.wall.thickness / 2,
-            z: -totalHeight / 2 + groundRightLevels[0],
+            z: -totalHeight / 2 + groundRightMiddle[0],
             value: 1,
           },
           {
@@ -147,7 +181,7 @@ export function ModelCanvas() {
           {
             x: -500,
             y: model.wall.thickness / 2,
-            z: -totalHeight / 2 + groundRightHeights[0],
+            z: -totalHeight / 2 + groundRightTop[0],
             value: 4,
           },
         ]}
