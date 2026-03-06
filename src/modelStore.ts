@@ -155,3 +155,22 @@ export const setGroundThickness = (
     };
   });
 };
+
+export const setGroundMaterial = (
+  ground: "left" | "right",
+  index: number,
+  materialId: string,
+) => {
+  useModel.setState((state) => {
+    const groundKey = ground === "left" ? "groundLeft" : "groundRight";
+    const updatedGround = [...state[groundKey]];
+    updatedGround[index] = {
+      ...updatedGround[index],
+      groundId: materialId,
+    };
+    return {
+      ...state,
+      [groundKey]: updatedGround,
+    };
+  });
+};

@@ -5,6 +5,7 @@ import {
   setFoundationLeft,
   setFoundationRight,
   setFoundationThickness,
+  setGroundMaterial,
   setGroundThickness,
   setSlabAngle,
   setSlabThickness,
@@ -15,6 +16,9 @@ import {
 import { cutGeometryByPart, cutGeometryByPlane } from "@/manifold";
 import { LineDimension } from "./LineDimension";
 import { AngleDimension } from "./AngleDimension";
+import React from "react";
+import { MaterialSelect } from "./MaterialSelect";
+import { AreaLoad } from "./AreaLoad";
 
 // Z direction is up (common for engineering)
 // World length unit is 1 mm (common for engineering)
@@ -22,8 +26,6 @@ THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
 
 const concreteMaterial = new THREE.MeshStandardMaterial({
   color: "gray",
-  transparent: true,
-  opacity: 0.5,
 });
 
 const soilMaterial = new THREE.MeshStandardMaterial({
@@ -150,7 +152,7 @@ export function ModelCanvas() {
       <CameraControls
         makeDefault
         truckSpeed={0}
-        dollySpeed={3}
+        dollySpeed={1}
         minDistance={2000}
         maxDistance={20000}
         draggingSmoothTime={0.1}
@@ -173,15 +175,73 @@ export function ModelCanvas() {
       </mesh>
       {/* Ground left */}
       {groundLeft.map((ground, index) => (
-        <mesh key={index} geometry={ground.geometry} material={soilMaterial}>
-          <Edges color="orange" />
-        </mesh>
+        <React.Fragment key={index}>
+          <mesh geometry={ground.geometry} material={soilMaterial}>
+            <Edges color="orange" />
+          </mesh>
+          <LineDimension
+            start={
+              new THREE.Vector3(0, leftEdge, -totalHeight / 2 + ground.bottom)
+            }
+            end={new THREE.Vector3(0, leftEdge, -totalHeight / 2 + ground.top)}
+            up={new THREE.Vector3(0, -1, 0)}
+            offset={200}
+            onChange={(v) => setGroundThickness("left", index, v)}
+          />
+          <MaterialSelect
+            position={
+              new THREE.Vector3(
+                0,
+                -model.wall.thickness / 2 - leftGroundWidth / 2,
+                -totalHeight / 2 + ground.middle,
+              )
+            }
+            value={
+              model.materials.find(
+                (m) => m.id === model.groundLeft[index].groundId,
+              )!
+            }
+            options={model.materials}
+            onChange={(material) => {
+              setGroundMaterial("left", index, material.id);
+            }}
+          />
+        </React.Fragment>
       ))}
       {/* Ground right */}
       {groundRight.map((ground, index) => (
-        <mesh key={index} geometry={ground.geometry} material={soilMaterial}>
-          <Edges color="orange" />
-        </mesh>
+        <React.Fragment key={index}>
+          <mesh geometry={ground.geometry} material={soilMaterial}>
+            <Edges color="orange" />
+          </mesh>
+          <LineDimension
+            start={
+              new THREE.Vector3(0, rightEdge, -totalHeight / 2 + ground.bottom)
+            }
+            end={new THREE.Vector3(0, rightEdge, -totalHeight / 2 + ground.top)}
+            up={new THREE.Vector3(0, 1, 0)}
+            offset={200}
+            onChange={(v) => setGroundThickness("right", index, v)}
+          />
+          <MaterialSelect
+            position={
+              new THREE.Vector3(
+                0,
+                model.wall.thickness / 2 + rightGroundWidth / 2,
+                -totalHeight / 2 + ground.middle,
+              )
+            }
+            value={
+              model.materials.find(
+                (m) => m.id === model.groundRight[index].groundId,
+              )!
+            }
+            options={model.materials}
+            onChange={(material) => {
+              setGroundMaterial("right", index, material.id);
+            }}
+          />
+        </React.Fragment>
       ))}
       {/* <AreaLoad
         polygon={[
@@ -326,30 +386,49 @@ export function ModelCanvas() {
         radius={200}
         onChange={setSlabAngle}
       />
-      {groundLeft.map((ground, index) => (
-        <LineDimension
-          key={index}
-          start={
-            new THREE.Vector3(0, leftEdge, -totalHeight / 2 + ground.bottom)
-          }
-          end={new THREE.Vector3(0, leftEdge, -totalHeight / 2 + ground.top)}
-          up={new THREE.Vector3(0, -1, 0)}
-          offset={200}
-          onChange={(v) => setGroundThickness("left", index, v)}
-        />
-      ))}
-      {groundRight.map((ground, index) => (
-        <LineDimension
-          key={index}
-          start={
-            new THREE.Vector3(0, rightEdge, -totalHeight / 2 + ground.bottom)
-          }
-          end={new THREE.Vector3(0, rightEdge, -totalHeight / 2 + ground.top)}
-          up={new THREE.Vector3(0, 1, 0)}
-          offset={200}
-          onChange={(v) => setGroundThickness("right", index, v)}
-        />
-      ))}
+      <AreaLoad
+        polygon={[
+          {
+            x: 500,
+            y: model.wall.thickness / 2,
+            z:
+              -totalHeight / 2 +
+              groundRight[groundRight.length - 1].top +
+              model.slab.thickness,
+            value: model.liveLoad,
+          },
+          {
+            x: 500,
+            y: model.wall.thickness / 2 + rightGroundWidth,
+            z:
+              -totalHeight / 2 +
+              groundRight[groundRight.length - 1].top +
+              model.slab.thickness +
+              tanAlpha * rightGroundWidth,
+            value: model.liveLoad,
+          },
+          {
+            x: -500,
+            y: model.wall.thickness / 2 + rightGroundWidth,
+            z:
+              -totalHeight / 2 +
+              groundRight[groundRight.length - 1].top +
+              model.slab.thickness +
+              tanAlpha * rightGroundWidth,
+            value: model.liveLoad,
+          },
+          {
+            x: -500,
+            y: model.wall.thickness / 2,
+            z:
+              -totalHeight / 2 +
+              groundRight[groundRight.length - 1].top +
+              model.slab.thickness,
+            value: model.liveLoad,
+          },
+        ]}
+        normal={{ x: 0, y: 0, z: 1 }}
+      />
     </Canvas>
   );
 }
