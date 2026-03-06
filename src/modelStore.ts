@@ -66,3 +66,92 @@ export const addMaterial = (material: GroundMaterial) => {
     materials: [...state.materials, material],
   }));
 };
+
+export const setWallHeight = (height: number) => {
+  useModel.setState((state) => ({
+    ...state,
+    wall: {
+      ...state.wall,
+      height,
+    },
+  }));
+};
+
+export const setWallThickness = (thickness: number) => {
+  useModel.setState((state) => ({
+    ...state,
+    wall: {
+      ...state.wall,
+      thickness,
+    },
+  }));
+};
+
+export const setFoundationLeft = (left: number) => {
+  useModel.setState((state) => ({
+    ...state,
+    foundation: {
+      ...state.foundation,
+      left,
+    },
+  }));
+};
+
+export const setFoundationRight = (right: number) => {
+  useModel.setState((state) => ({
+    ...state,
+    foundation: {
+      ...state.foundation,
+      right,
+    },
+  }));
+};
+
+export const setFoundationThickness = (thickness: number) => {
+  useModel.setState((state) => ({
+    ...state,
+    foundation: {
+      ...state.foundation,
+      thickness,
+    },
+  }));
+};
+
+export const setSlabThickness = (thickness: number) => {
+  useModel.setState((state) => ({
+    ...state,
+    slab: {
+      ...state.slab,
+      thickness,
+    },
+  }));
+};
+
+export const setSlabAngle = (angle: number) => {
+  useModel.setState((state) => ({
+    ...state,
+    slab: {
+      ...state.slab,
+      angle,
+    },
+  }));
+};
+
+export const setGroundThickness = (
+  ground: "left" | "right",
+  index: number,
+  thickness: number,
+) => {
+  useModel.setState((state) => {
+    const groundKey = ground === "left" ? "groundLeft" : "groundRight";
+    const updatedGround = [...state[groundKey]];
+    updatedGround[index] = {
+      ...updatedGround[index],
+      thickness,
+    };
+    return {
+      ...state,
+      [groundKey]: updatedGround,
+    };
+  });
+};

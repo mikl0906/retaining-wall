@@ -1,9 +1,20 @@
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { CameraControls, Edges, PerspectiveCamera } from "@react-three/drei";
-import { useModel } from "../modelStore";
-import { AreaLoad } from "./AreaLoad";
+import {
+  setFoundationLeft,
+  setFoundationRight,
+  setFoundationThickness,
+  setGroundThickness,
+  setSlabAngle,
+  setSlabThickness,
+  setWallHeight,
+  setWallThickness,
+  useModel,
+} from "../modelStore";
 import { cutGeometryByPart, cutGeometryByPlane } from "@/manifold";
+import { LineDimension } from "./LineDimension";
+import { AngleDimension } from "./AngleDimension";
 
 // Z direction is up (common for engineering)
 // World length unit is 1 mm (common for engineering)
@@ -26,6 +37,10 @@ export function ModelCanvas() {
 
   const totalHeight = model.wall.height + model.foundation.thickness;
   const tanAlpha = Math.tan((model.slab.angle / 180) * Math.PI);
+  const leftEdge = -model.wall.thickness / 2 - model.foundation.left - 1000;
+  const rightEdge = model.wall.thickness / 2 + model.foundation.right + 1000;
+  const leftGroundWidth = model.foundation.left + 1000;
+  const rightGroundWidth = model.foundation.right + 1000;
 
   const foundation = new THREE.BoxGeometry(
     1000,
@@ -38,52 +53,51 @@ export function ModelCanvas() {
     -totalHeight / 2 + model.foundation.thickness / 2,
   );
 
-  const groundLeftTop: number[] = [];
-  const groundLeftMiddle: number[] = [];
-  const groundLeft: THREE.BufferGeometry[] = [];
-  let current = 0;
+  const groundLeft: {
+    bottom: number;
+    top: number;
+    middle: number;
+    geometry: THREE.BufferGeometry;
+  }[] = [];
+  let bottom = 0;
   for (const layer of model.groundLeft) {
-    current += layer.thickness / 2;
-    groundLeftMiddle.push(current);
-    current += layer.thickness / 2;
-    groundLeftTop.push(current);
-
-    const geometry = new THREE.BoxGeometry(1000, 2000, layer.thickness);
-    geometry.translate(
+    const g = new THREE.BoxGeometry(1000, leftGroundWidth, layer.thickness);
+    g.translate(
       0,
-      -1000 - model.wall.thickness / 2,
-      -totalHeight / 2 + current - layer.thickness / 2,
+      leftEdge + leftGroundWidth / 2,
+      -totalHeight / 2 + bottom + layer.thickness / 2,
     );
-    groundLeft.push(cutGeometryByPart(geometry, foundation));
+    groundLeft.push({
+      bottom,
+      top: bottom + layer.thickness,
+      middle: bottom + layer.thickness / 2,
+      geometry: cutGeometryByPart(g, foundation),
+    });
+    bottom += layer.thickness;
   }
 
-  const groundRightTop: number[] = [];
-  const groundRightMiddle: number[] = [];
-  const groundRight: THREE.BufferGeometry[] = [];
-  current = 0;
+  const groundRight: {
+    bottom: number;
+    top: number;
+    middle: number;
+    geometry: THREE.BufferGeometry;
+  }[] = [];
+  bottom = 0;
   let i = 0;
   for (const layer of model.groundRight) {
-    current += layer.thickness / 2;
-    groundRightMiddle.push(current);
-    current += layer.thickness / 2;
-    groundRightTop.push(current);
-
     const isTopLayer = i == model.groundRight.length - 1;
-    const addHeight = isTopLayer ? 2000 * tanAlpha : 0;
-
-    const geometry = new THREE.BoxGeometry(
+    const addHeight = isTopLayer ? rightGroundWidth * tanAlpha : 0;
+    const g = new THREE.BoxGeometry(
       1000,
-      2000,
+      rightGroundWidth,
       layer.thickness + addHeight,
     );
-    geometry.translate(
+    g.translate(
       0,
-      1000 + model.wall.thickness / 2,
-      -totalHeight / 2 + current - layer.thickness / 2 + addHeight / 2,
+      rightEdge - rightGroundWidth / 2,
+      -totalHeight / 2 + bottom + layer.thickness / 2 + addHeight / 2,
     );
-
-    let g = cutGeometryByPart(geometry, foundation);
-
+    let geometry = cutGeometryByPart(g, foundation);
     if (isTopLayer) {
       // Construct a plane to cut the top layer with slope
       const planeMatrix = new THREE.Matrix4().makeRotationX(
@@ -91,25 +105,37 @@ export function ModelCanvas() {
       );
       planeMatrix.setPosition(
         0,
-        1000 + model.wall.thickness / 2,
-        -totalHeight / 2 + current + addHeight / 2,
+        rightEdge - rightGroundWidth / 2,
+        -totalHeight / 2 + bottom + layer.thickness + addHeight / 2,
       );
 
-      g = cutGeometryByPlane(g, planeMatrix);
+      geometry = cutGeometryByPlane(geometry, planeMatrix);
     }
-    groundRight.push(g);
+    groundRight.push({
+      bottom,
+      top: bottom + layer.thickness,
+      middle: bottom + layer.thickness / 2,
+      geometry,
+    });
+    bottom += layer.thickness;
     i++;
   }
-  const rightTop = current;
 
-  const slabBox = new THREE.BoxGeometry(1000, 2000, model.slab.thickness);
+  const slab = new THREE.BoxGeometry(
+    1000,
+    rightGroundWidth,
+    model.slab.thickness,
+  );
   const slabMatrix = new THREE.Matrix4().makeShear(0, 0, 0, tanAlpha, 0, 0);
   slabMatrix.setPosition(
     0,
-    model.wall.thickness / 2 + 1000,
-    -totalHeight / 2 + rightTop + model.slab.thickness / 2 + tanAlpha * 1000,
+    model.wall.thickness / 2 + rightGroundWidth / 2,
+    -totalHeight / 2 +
+      groundRight[groundRight.length - 1].top +
+      model.slab.thickness / 2 +
+      (tanAlpha * rightGroundWidth) / 2,
   );
-  slabBox.applyMatrix4(slabMatrix);
+  slab.applyMatrix4(slabMatrix);
 
   return (
     <Canvas>
@@ -121,7 +147,6 @@ export function ModelCanvas() {
         near={1}
         far={10000000}
       />
-      <axesHelper args={[1000]} />
       <CameraControls
         makeDefault
         truckSpeed={0}
@@ -143,22 +168,22 @@ export function ModelCanvas() {
         <Edges color="gray" />
       </mesh>
       {/* Ground Slab */}
-      <mesh geometry={slabBox} material={concreteMaterial}>
+      <mesh geometry={slab} material={concreteMaterial}>
         <Edges color="gray" />
       </mesh>
       {/* Ground left */}
-      {groundLeft.map((geometry, index) => (
-        <mesh key={index} geometry={geometry} material={soilMaterial}>
+      {groundLeft.map((ground, index) => (
+        <mesh key={index} geometry={ground.geometry} material={soilMaterial}>
           <Edges color="orange" />
         </mesh>
       ))}
       {/* Ground right */}
-      {groundRight.map((geometry, index) => (
-        <mesh key={index} geometry={geometry} material={soilMaterial}>
+      {groundRight.map((ground, index) => (
+        <mesh key={index} geometry={ground.geometry} material={soilMaterial}>
           <Edges color="orange" />
         </mesh>
       ))}
-      <AreaLoad
+      {/* <AreaLoad
         polygon={[
           {
             x: 500,
@@ -186,7 +211,145 @@ export function ModelCanvas() {
           },
         ]}
         normal={{ x: 0, y: 1, z: 0 }}
+      /> */}
+      <LineDimension
+        start={
+          new THREE.Vector3(
+            0,
+            -model.wall.thickness / 2,
+            -totalHeight / 2 + model.foundation.thickness,
+          )
+        }
+        end={new THREE.Vector3(0, -model.wall.thickness / 2, totalHeight / 2)}
+        up={new THREE.Vector3(0, -1, 0)}
+        offset={200}
+        onChange={setWallHeight}
       />
+      <LineDimension
+        start={new THREE.Vector3(0, -model.wall.thickness / 2, totalHeight / 2)}
+        end={new THREE.Vector3(0, model.wall.thickness / 2, totalHeight / 2)}
+        up={new THREE.Vector3(0, 0, 1)}
+        offset={200}
+        onChange={setWallThickness}
+      />
+      <LineDimension
+        start={
+          new THREE.Vector3(
+            0,
+            -model.wall.thickness / 2 - model.foundation.left,
+            -totalHeight / 2,
+          )
+        }
+        end={
+          new THREE.Vector3(
+            0,
+            -model.wall.thickness / 2 - model.foundation.left,
+            -totalHeight / 2 + model.foundation.thickness,
+          )
+        }
+        up={new THREE.Vector3(0, -1, 0)}
+        offset={200}
+        onChange={setFoundationThickness}
+      />
+      <LineDimension
+        start={
+          new THREE.Vector3(
+            0,
+            -model.wall.thickness / 2 - model.foundation.left,
+            -totalHeight / 2 + model.foundation.thickness,
+          )
+        }
+        end={
+          new THREE.Vector3(
+            0,
+            -model.wall.thickness / 2,
+            -totalHeight / 2 + model.foundation.thickness,
+          )
+        }
+        up={new THREE.Vector3(0, 0, 1)}
+        offset={200}
+        onChange={setFoundationLeft}
+      />
+      <LineDimension
+        start={
+          new THREE.Vector3(
+            0,
+            model.wall.thickness / 2,
+            -totalHeight / 2 + model.foundation.thickness,
+          )
+        }
+        end={
+          new THREE.Vector3(
+            0,
+            model.wall.thickness / 2 + model.foundation.right,
+            -totalHeight / 2 + model.foundation.thickness,
+          )
+        }
+        up={new THREE.Vector3(0, 0, 1)}
+        offset={200}
+        onChange={setFoundationRight}
+      />
+      <LineDimension
+        start={
+          new THREE.Vector3(
+            0,
+            rightEdge,
+            -totalHeight / 2 +
+              groundRight[groundRight.length - 1].top +
+              tanAlpha * rightGroundWidth,
+          )
+        }
+        end={
+          new THREE.Vector3(
+            0,
+            rightEdge,
+            -totalHeight / 2 +
+              groundRight[groundRight.length - 1].top +
+              tanAlpha * rightGroundWidth +
+              model.slab.thickness,
+          )
+        }
+        up={new THREE.Vector3(0, 1, 0)}
+        offset={200}
+        onChange={setSlabThickness}
+      />
+      <AngleDimension
+        vertex={
+          new THREE.Vector3(
+            0,
+            model.wall.thickness / 2 + rightGroundWidth / 2,
+            -totalHeight / 2 + groundRight[groundRight.length - 1].top,
+          )
+        }
+        from={new THREE.Vector3(0, 1, 0)}
+        to={new THREE.Vector3(0, 1, tanAlpha)}
+        radius={200}
+        onChange={setSlabAngle}
+      />
+      {groundLeft.map((ground, index) => (
+        <LineDimension
+          key={index}
+          start={
+            new THREE.Vector3(0, leftEdge, -totalHeight / 2 + ground.bottom)
+          }
+          end={new THREE.Vector3(0, leftEdge, -totalHeight / 2 + ground.top)}
+          up={new THREE.Vector3(0, -1, 0)}
+          offset={200}
+          onChange={(v) => setGroundThickness("left", index, v)}
+        />
+      ))}
+      {groundRight.map((ground, index) => (
+        <LineDimension
+          key={index}
+          start={
+            new THREE.Vector3(0, rightEdge, -totalHeight / 2 + ground.bottom)
+          }
+          end={new THREE.Vector3(0, rightEdge, -totalHeight / 2 + ground.top)}
+          up={new THREE.Vector3(0, 1, 0)}
+          offset={200}
+          onChange={(v) => setGroundThickness("right", index, v)}
+        />
+      ))}
     </Canvas>
   );
 }
