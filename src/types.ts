@@ -13,6 +13,7 @@ const GroundLayer = z.object({
   thickness: z.number(), // height of this layer in mm
   groundId: z.string(), // id of the ground type from the list of grounds
 });
+export type GroundLayer = z.infer<typeof GroundLayer>;
 
 const Model = z.object({
   project: z.string().default("Untitled project"),
