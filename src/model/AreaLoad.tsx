@@ -1,13 +1,15 @@
 import * as THREE from "three";
-import { Line } from "@react-three/drei";
+import { Html, Instance, Instances, Line } from "@react-three/drei";
 
 const arrowMinLength = 100;
-const arrowScale = 100;
+const arrowScale = 50;
 const arrowSpacing = 400;
 
 const coneGeometry = new THREE.ConeGeometry(20, 100, 12);
 coneGeometry.translate(0, -50, 0);
 coneGeometry.rotateX(-Math.PI / 2);
+
+const coneMaterial = new THREE.MeshStandardMaterial({ color: "green" });
 
 interface AreaLoadProps {
   polygon: {
@@ -24,14 +26,13 @@ interface AreaLoadProps {
 }
 
 export function AreaLoad({ polygon, normal }: AreaLoadProps) {
-  const origin = new THREE.Vector3().copy(polygon[0]);
-  const axisX = new THREE.Vector3().copy(polygon[1]).sub(origin).normalize();
-  const axisY = new THREE.Vector3().crossVectors(normal, axisX).normalize();
-  const axisZ = new THREE.Vector3().crossVectors(axisX, axisY).normalize();
+  if (polygon.length < 3) return null;
 
-  const rotation = new THREE.Euler().setFromRotationMatrix(
-    new THREE.Matrix4().makeBasis(axisX, axisY, axisZ),
-  );
+  const origin = new THREE.Vector3().copy(polygon[0]);
+  const dir = new THREE.Vector3().copy(polygon[1]).sub(origin).normalize();
+  const axisY = new THREE.Vector3().crossVectors(normal, dir).normalize();
+  const axisX = new THREE.Vector3().crossVectors(axisY, normal).normalize();
+  const axisZ = new THREE.Vector3().crossVectors(axisX, axisY).normalize();
 
   const localPolygon = polygon.map((p) => {
     const localPoint = new THREE.Vector3().copy(p).sub(origin);
@@ -42,6 +43,9 @@ export function AreaLoad({ polygon, normal }: AreaLoadProps) {
     );
   });
 
+  const rotation = new THREE.Euler().setFromRotationMatrix(
+    new THREE.Matrix4().makeBasis(axisX, axisY, axisZ),
+  );
   const localNormal = new THREE.Vector3()
     .copy(normal)
     .applyQuaternion(new THREE.Quaternion().setFromEuler(rotation).invert());
@@ -57,7 +61,7 @@ export function AreaLoad({ polygon, normal }: AreaLoadProps) {
   topPolygon.push(topPolygon[0]);
 
   const arrows: {
-    p: THREE.Vector3;
+    position: THREE.Vector3;
     length: number;
   }[] = [];
   const arrowLines: THREE.Vector3[] = [];
@@ -74,7 +78,7 @@ export function AreaLoad({ polygon, normal }: AreaLoadProps) {
       const value2 = polygon[(i + 1) % polygon.length].value;
       const value = value1 * (1 - t) + value2 * t;
       arrows.push({
-        p: point,
+        position: point,
         length: value,
       });
       arrowLines.push(
@@ -88,14 +92,33 @@ export function AreaLoad({ polygon, normal }: AreaLoadProps) {
 
   return (
     <group position={origin} rotation={rotation}>
-      <axesHelper args={[100]} />
-      {arrows.map((segment, index) => (
-        <mesh key={index} geometry={coneGeometry} position={segment.p}>
-          <meshStandardMaterial color="green" />
-        </mesh>
-      ))}
+      <Instances
+        geometry={coneGeometry}
+        material={coneMaterial}
+        count={arrows.length}
+      >
+        {arrows.map((arrow, i) => (
+          <Instance key={i} position={arrow.position} />
+        ))}
+      </Instances>
       <Line points={arrowLines} color={"green"} segments />
       <Line points={topPolygon} color={"green"} />
+      {localPolygon.map((point, i) => (
+        <Html
+          key={i}
+          position={new THREE.Vector3()
+            .copy(point)
+            .addScaledVector(
+              localNormal,
+              arrowMinLength + polygon[i].value * arrowScale + 80,
+            )}
+          center
+        >
+          <div className="px-2 bg-gray-900 rounded-md text-nowrap">
+            {polygon[i].value} kN/m²
+          </div>
+        </Html>
+      ))}
     </group>
   );
 }
