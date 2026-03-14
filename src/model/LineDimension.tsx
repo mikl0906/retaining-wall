@@ -110,11 +110,11 @@ export function LineDimension({
             }}
             onKeyDown={handleKeyDown}
             onBlur={commitEdit}
-            className={`w-16 min-w-0 px-2 bg-gray-900 rounded-md text-center text-white outline-none border ${error ? "border-red-500" : "border-magenta-400"}`}
+            className={`w-16 min-w-0 px-2 bg-background rounded-md text-center outline-none border ${error ? "border-red-500" : "border-magenta-400"}`}
           />
         ) : (
           <div
-            className="px-2 bg-gray-900 rounded-md text-nowrap cursor-pointer hover:bg-gray-700"
+            className="px-2 bg-background/50 rounded-md border text-nowrap cursor-pointer"
             onClick={startEditing}
           >
             {length} mm

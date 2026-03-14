@@ -114,7 +114,7 @@ export function AreaLoad({ polygon, normal }: AreaLoadProps) {
             )}
           center
         >
-          <div className="px-2 bg-gray-900 rounded-md text-nowrap">
+          <div className="px-2 bg-background/50 rounded-md border text-nowrap">
             {polygon[i].value} kN/m²
           </div>
         </Html>
