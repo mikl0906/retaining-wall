@@ -4,7 +4,7 @@ import { generateReport } from "@/reports";
 import { useModel } from "@/modelStore";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme } from "@/components/theme-provider";
 
 export function Menu() {
   const { theme, setTheme } = useTheme();

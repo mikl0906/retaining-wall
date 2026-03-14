@@ -12,12 +12,10 @@ import {
 } from "./components/ui/drawer";
 import { useMediaQuery } from "usehooks-ts";
 import { useState } from "react";
-import { Toaster } from "sonner";
-import { useTheme } from "./context/ThemeContext";
+import { Toaster } from "./components/ui/sonner";
 // import { ReportPreview } from "./ui/ReportPreview";
 
 export function App() {
-  const { theme } = useTheme();
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   return (
@@ -29,7 +27,7 @@ export function App() {
       {/* <div className="absolute w-[50%] h-[50%] right-2 bottom-2">
         <ReportPreview />
         </div> */}
-      <Toaster richColors theme={theme} />
+      <Toaster richColors />
     </>
   );
 }
