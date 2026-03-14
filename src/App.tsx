@@ -13,13 +13,14 @@ import {
 import { useMediaQuery } from "usehooks-ts";
 import { useState } from "react";
 import { Toaster } from "./components/ui/sonner";
+import { ThemeProvider } from "./components/theme-provider";
 // import { ReportPreview } from "./ui/ReportPreview";
 
 export function App() {
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   return (
-    <>
+    <ThemeProvider>
       <div className="absolute w-full h-full">
         <ModelCanvas />
       </div>
@@ -28,7 +29,7 @@ export function App() {
         <ReportPreview />
         </div> */}
       <Toaster richColors />
-    </>
+    </ThemeProvider>
   );
 }
 
