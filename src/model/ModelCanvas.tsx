@@ -179,9 +179,11 @@ export function ModelCanvas() {
         onChange={setWallHeight}
       />
       <LineDimension
-        start={new THREE.Vector3(0, -model.wall.thickness / 2, totalHeight / 2)}
-        end={new THREE.Vector3(0, model.wall.thickness / 2, totalHeight / 2)}
-        up={new THREE.Vector3(0, 0, 1)}
+        start={
+          new THREE.Vector3(0, -model.wall.thickness / 2, -totalHeight / 2)
+        }
+        end={new THREE.Vector3(0, model.wall.thickness / 2, -totalHeight / 2)}
+        up={new THREE.Vector3(0, 0, -1)}
         offset={200}
         onChange={setWallThickness}
       />
@@ -300,7 +302,7 @@ export function ModelCanvas() {
             }
             value={
               model.materials.find(
-                (m) => m.id === model.groundLeft[index].groundId,
+                (m) => m.id === model.groundLeft[index].materialId,
               )!
             }
             options={model.materials}
@@ -342,6 +344,7 @@ export function ModelCanvas() {
               },
             ]}
             normal={{ x: 0, y: -1, z: 0 }}
+            color="orange"
           />
         </React.Fragment>
       ))}
@@ -370,7 +373,7 @@ export function ModelCanvas() {
             }
             value={
               model.materials.find(
-                (m) => m.id === model.groundRight[index].groundId,
+                (m) => m.id === model.groundRight[index].materialId,
               )!
             }
             options={model.materials}
@@ -412,6 +415,7 @@ export function ModelCanvas() {
               },
             ]}
             normal={{ x: 0, y: 1, z: 0 }}
+            color="orange"
           />
         </React.Fragment>
       ))}
@@ -487,6 +491,7 @@ export function ModelCanvas() {
           },
         ]}
         normal={{ x: 0, y: -1, z: 0 }}
+        color="orange"
       />
       <AreaLoad
         polygon={[
@@ -516,6 +521,7 @@ export function ModelCanvas() {
           },
         ]}
         normal={{ x: 0, y: 0, z: 1 }}
+        color="orange"
       />
       <AreaLoad
         polygon={[
@@ -545,6 +551,7 @@ export function ModelCanvas() {
           },
         ]}
         normal={{ x: 0, y: 1, z: 0 }}
+        color="orange"
       />
       <AreaLoad
         polygon={[
@@ -574,6 +581,7 @@ export function ModelCanvas() {
           },
         ]}
         normal={{ x: 0, y: 0, z: 1 }}
+        color="orange"
       />
     </Canvas>
   );

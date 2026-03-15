@@ -33,17 +33,17 @@ const emptyModel: Model = {
   groundLeft: [
     {
       thickness: 1500,
-      groundId: "bacf7a0a-c6af-428e-b946-5c7809b51dab",
+      materialId: "bacf7a0a-c6af-428e-b946-5c7809b51dab",
     },
   ],
   groundRight: [
     {
       thickness: 2000,
-      groundId: "bacf7a0a-c6af-428e-b946-5c7809b51dab",
+      materialId: "bacf7a0a-c6af-428e-b946-5c7809b51dab",
     },
     {
       thickness: 1000,
-      groundId: "bacf7a0a-c6af-428e-b946-5c7809b51dab",
+      materialId: "bacf7a0a-c6af-428e-b946-5c7809b51dab",
     },
   ],
   gammaDL: 1.15,
@@ -166,7 +166,7 @@ export const setGroundMaterial = (
     const updatedGround = [...state[groundKey]];
     updatedGround[index] = {
       ...updatedGround[index],
-      groundId: materialId,
+      materialId: materialId,
     };
     return {
       ...state,

@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { Html, Instance, Instances, Line } from "@react-three/drei";
+import { Instance, Instances, Line } from "@react-three/drei";
+import { NumberInput } from "./NumberInput";
 
 const arrowMinLength = 100;
 const arrowScale = 50;
@@ -8,8 +9,6 @@ const arrowSpacing = 400;
 const coneGeometry = new THREE.ConeGeometry(20, 100, 12);
 coneGeometry.translate(0, -50, 0);
 coneGeometry.rotateX(-Math.PI / 2);
-
-const coneMaterial = new THREE.MeshStandardMaterial({ color: "green" });
 
 interface AreaLoadProps {
   polygon: {
@@ -23,9 +22,16 @@ interface AreaLoadProps {
     y: number;
     z: number;
   };
+  color?: string;
+  onChange?: (value: number) => void;
 }
 
-export function AreaLoad({ polygon, normal }: AreaLoadProps) {
+export function AreaLoad({
+  polygon,
+  normal,
+  color = "green",
+  onChange,
+}: AreaLoadProps) {
   if (polygon.length < 3) return null;
 
   const origin = new THREE.Vector3().copy(polygon[0]);
@@ -58,6 +64,9 @@ export function AreaLoad({ polygon, normal }: AreaLoadProps) {
         arrowMinLength + polygon[i].value * arrowScale,
       ),
   );
+  const topPolygonAverage = topPolygon
+    .reduce((acc, p) => acc.add(p), new THREE.Vector3())
+    .divideScalar(topPolygon.length);
   topPolygon.push(topPolygon[0]);
 
   const arrows: {
@@ -90,35 +99,27 @@ export function AreaLoad({ polygon, normal }: AreaLoadProps) {
     }
   }
 
+  const minValue = Math.min(...polygon.map((p) => p.value));
+  const maxValue = Math.max(...polygon.map((p) => p.value));
+  const value =
+    maxValue - minValue > 0.1 ? `${minValue}...${maxValue}` : `${maxValue}`;
+
   return (
     <group position={origin} rotation={rotation}>
-      <Instances
-        geometry={coneGeometry}
-        material={coneMaterial}
-        count={arrows.length}
-      >
+      <Instances geometry={coneGeometry} count={arrows.length}>
+        <meshStandardMaterial color={color} />
         {arrows.map((arrow, i) => (
           <Instance key={i} position={arrow.position} />
         ))}
       </Instances>
-      <Line points={arrowLines} color={"green"} segments />
-      <Line points={topPolygon} color={"green"} />
-      {localPolygon.map((point, i) => (
-        <Html
-          key={i}
-          position={new THREE.Vector3()
-            .copy(point)
-            .addScaledVector(
-              localNormal,
-              arrowMinLength + polygon[i].value * arrowScale + 80,
-            )}
-          center
-        >
-          <div className="px-2 bg-background/50 rounded-md border text-nowrap">
-            {polygon[i].value} kN/m²
-          </div>
-        </Html>
-      ))}
+      <Line points={arrowLines} color={color} segments />
+      <Line points={topPolygon} color={color} />
+      <NumberInput
+        position={topPolygonAverage}
+        value={value}
+        unit="kN/m²"
+        onChange={onChange}
+      />
     </group>
   );
 }

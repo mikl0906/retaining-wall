@@ -11,7 +11,7 @@ export type GroundMaterial = z.infer<typeof GroundMaterial>;
 
 const GroundLayer = z.object({
   thickness: z.number(), // height of this layer in mm
-  groundId: z.string(), // id of the ground type from the list of grounds
+  materialId: z.string(), // id of the ground type from the list of grounds
 });
 export type GroundLayer = z.infer<typeof GroundLayer>;
 

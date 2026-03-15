@@ -1,6 +1,6 @@
-import { Html } from "@react-three/drei";
-import { useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import * as THREE from "three";
+import { NumberInput } from "./NumberInput";
 
 const ARC_SEGMENTS = 48;
 
@@ -33,11 +33,6 @@ export function AngleDimension({
   radius,
   onChange,
 }: AngleDimensionProps) {
-  const [editing, setEditing] = useState(false);
-  const [inputValue, setInputValue] = useState("");
-  const [error, setError] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
   const fromDir = new THREE.Vector3().copy(from).normalize();
   const toDir = new THREE.Vector3().copy(to).normalize();
   const normal = new THREE.Vector3().crossVectors(fromDir, toDir).normalize();
@@ -110,31 +105,6 @@ export function AngleDimension({
     .clone()
     .addScaledVector(fromDir.clone().applyQuaternion(midQuat), radius + 150);
 
-  function startEditing() {
-    setInputValue(String(angleDeg));
-    setError(false);
-    setEditing(true);
-    setTimeout(() => inputRef.current?.select(), 0);
-  }
-
-  function commitEdit() {
-    const num = parseFloat(inputValue);
-    if (!isFinite(num)) {
-      setError(true);
-      return;
-    }
-    setEditing(false);
-    onChange(num);
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") {
-      commitEdit();
-    } else if (e.key === "Escape") {
-      setEditing(false);
-    }
-  }
-
   return (
     <>
       <lineSegments geometry={geometry}>
@@ -152,30 +122,12 @@ export function AngleDimension({
         quaternion={quatEnd}
         material={coneMaterial}
       />
-      <Html position={labelPos} center>
-        {editing ? (
-          <input
-            ref={inputRef}
-            value={inputValue}
-            onChange={(e) => {
-              setInputValue(e.target.value);
-              setError(false);
-            }}
-            onKeyDown={handleKeyDown}
-            onBlur={commitEdit}
-            className={`w-16 min-w-0 px-2 bg-gray-900 rounded-md text-center text-white outline-none border ${
-              error ? "border-red-500" : "border-magenta-400"
-            }`}
-          />
-        ) : (
-          <div
-            className="px-2 bg-gray-900 rounded-md text-nowrap cursor-pointer hover:bg-gray-700"
-            onClick={startEditing}
-          >
-            {angleDeg}°
-          </div>
-        )}
-      </Html>
+      <NumberInput
+        position={labelPos}
+        value={angleDeg}
+        unit="°"
+        onChange={onChange}
+      />
     </>
   );
 }
