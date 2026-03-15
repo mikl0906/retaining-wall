@@ -21,18 +21,18 @@ export const computeGroundPressure = (
       continue;
     }
 
-    // Passive
-    const ko1 = getKo1(material.phi, betta);
-    const topPassive = ko1 * load;
-    load += layer.thickness * material.weight;
-    const bottomPassive = ko1 * load;
-    passivePressure.push([topPassive, bottomPassive]);
+    const ko = getKo(material.phi, betta);
+    const ka = getKa(material.phi, material.alpha, betta);
 
-    // Active
-    const kah1 = getKah1(material.phi, material.alpha, betta);
-    const topActive = kah1 * load;
-    load += layer.thickness * material.weight;
-    const bottomActive = kah1 * load;
+    const topPassive = ko * load;
+    const topActive = ka * load;
+
+    load += (layer.thickness / 1000) * material.weight;
+
+    const bottomPassive = ko * load;
+    const bottomActive = ka * load;
+
+    passivePressure.push([topPassive, bottomPassive]);
     activePressure.push([topActive, bottomActive]);
   }
 
@@ -42,27 +42,67 @@ export const computeGroundPressure = (
   };
 };
 
-const getKo1 = (phi: number, betta: number) => {
+const getKo = (phi: number, betta: number) => {
   const phiRad = (phi * Math.PI) / 180;
   const bettaRad = (betta * Math.PI) / 180;
-  return (1 - Math.sin(phiRad)) / (1 + Math.sin(bettaRad));
+
+  return (1 - Math.sin(phiRad)) * (1 + Math.sin(bettaRad));
 };
 
-const getKah1 = (phi: number, alpha: number, betta: number) => {
-  const phiRad = (phi * Math.PI) / 180;
-  const alphaRad = (alpha * Math.PI) / 180;
-  const bettaRad = (betta * Math.PI) / 180;
-  const deltaRad = alphaRad;
+const getKa = (phi: number, alpha: number, betta: number) => {
+  const f = (phi * Math.PI) / 180;
+  const a = (alpha * Math.PI) / 180;
+  const b = (betta * Math.PI) / 180;
+  const d = f;
+
   return (
-    Math.cos(phiRad + alphaRad) ** 2 /
-    (Math.cos(alphaRad) ** 2 *
+    Math.cos(f + a) ** 2 /
+    (Math.cos(a) ** 2 *
       (1 +
         Math.sqrt(
-          (Math.sin(phiRad + deltaRad) * Math.sin(deltaRad - bettaRad)) /
-            (Math.cos(alphaRad - deltaRad) * Math.cos(alphaRad + bettaRad)),
+          (Math.sin(f + d) * Math.sin(f - b)) /
+            (Math.cos(a - d) * Math.cos(a + b)),
         )) **
         2)
   );
 };
 
-// const testMaterials
+// const testMaterials: GroundMaterial[] = [
+//   {
+//     id: "1",
+//     name: "Sand",
+//     weight: 17,
+//     phi: 33,
+//     alpha: 0,
+//   },
+//   {
+//     id: "2",
+//     name: "Gravel",
+//     weight: 18,
+//     phi: 35,
+//     alpha: 0,
+//   },
+//   {
+//     id: "3",
+//     name: "Moraine",
+//     weight: 20,
+//     phi: 38,
+//     alpha: 0,
+//   },
+// ];
+
+// const testLayers: GroundLayer[] = [
+//   {
+//     thickness: 150,
+//     materialId: "2",
+//   },
+//   {
+//     thickness: 850,
+//     materialId: "3",
+//   },
+// ];
+
+// const q_d = 5.5;
+// const betta = 10;
+// const result = computeGroundPressure(testLayers, testMaterials, betta, q_d);
+// console.log(result);

@@ -19,10 +19,15 @@ import { AngleDimension } from "./AngleDimension";
 import React from "react";
 import { MaterialSelect } from "./MaterialSelect";
 import { AreaLoad } from "./AreaLoad";
+import { computeGroundPressure } from "@/groundPressure";
 
 // Z direction is up (common for engineering)
 // World length unit is 1 mm (common for engineering)
 THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
+
+const leftGroundFreeSpace = 1000;
+const rightGroundFreeSpace = 1000;
+const dimPlane = 500;
 
 const concreteMaterial = new THREE.MeshStandardMaterial({
   color: "gray",
@@ -39,10 +44,10 @@ export function ModelCanvas() {
 
   const totalHeight = model.wall.height + model.foundation.thickness;
   const tanAlpha = Math.tan((model.slab.angle / 180) * Math.PI);
-  const leftEdge = -model.wall.thickness / 2 - model.foundation.left - 1000;
-  const rightEdge = model.wall.thickness / 2 + model.foundation.right + 1000;
-  const leftGroundWidth = model.foundation.left + 1000;
-  const rightGroundWidth = model.foundation.right + 1000;
+  const leftGroundWidth = model.foundation.left + leftGroundFreeSpace;
+  const rightGroundWidth = model.foundation.right + rightGroundFreeSpace;
+  const leftEdge = -model.wall.thickness / 2 - leftGroundWidth;
+  const rightEdge = model.wall.thickness / 2 + rightGroundWidth;
 
   const foundation = new THREE.BoxGeometry(
     1000,
@@ -123,6 +128,22 @@ export function ModelCanvas() {
     i++;
   }
 
+  const leftGroundPressure = computeGroundPressure(
+    model.groundLeft,
+    model.materials,
+    model.slab.angle,
+    model.liveLoad,
+  );
+  console.log(leftGroundPressure);
+
+  const rightGroundPressure = computeGroundPressure(
+    model.groundRight,
+    model.materials,
+    model.slab.angle,
+    model.liveLoad,
+  );
+  console.log(rightGroundPressure);
+
   const slab = new THREE.BoxGeometry(
     1000,
     rightGroundWidth,
@@ -168,22 +189,34 @@ export function ModelCanvas() {
       <LineDimension
         start={
           new THREE.Vector3(
-            0,
+            dimPlane,
             -model.wall.thickness / 2,
             -totalHeight / 2 + model.foundation.thickness,
           )
         }
-        end={new THREE.Vector3(0, -model.wall.thickness / 2, totalHeight / 2)}
+        end={
+          new THREE.Vector3(
+            dimPlane,
+            -model.wall.thickness / 2,
+            totalHeight / 2,
+          )
+        }
         up={new THREE.Vector3(0, -1, 0)}
-        offset={200}
+        offset={model.foundation.left + 300}
         onChange={setWallHeight}
       />
       <LineDimension
         start={
-          new THREE.Vector3(0, -model.wall.thickness / 2, -totalHeight / 2)
+          new THREE.Vector3(
+            dimPlane,
+            -model.wall.thickness / 2,
+            totalHeight / 2,
+          )
         }
-        end={new THREE.Vector3(0, model.wall.thickness / 2, -totalHeight / 2)}
-        up={new THREE.Vector3(0, 0, -1)}
+        end={
+          new THREE.Vector3(dimPlane, model.wall.thickness / 2, totalHeight / 2)
+        }
+        up={new THREE.Vector3(0, 0, 1)}
         offset={200}
         onChange={setWallThickness}
       />
@@ -194,40 +227,52 @@ export function ModelCanvas() {
       <LineDimension
         start={
           new THREE.Vector3(
-            0,
+            dimPlane,
             -model.wall.thickness / 2 - model.foundation.left,
             -totalHeight / 2,
           )
         }
         end={
           new THREE.Vector3(
-            0,
+            dimPlane,
             -model.wall.thickness / 2 - model.foundation.left,
             -totalHeight / 2 + model.foundation.thickness,
           )
         }
         up={new THREE.Vector3(0, -1, 0)}
-        offset={400}
+        offset={300}
         onChange={setFoundationThickness}
       />
       <LineDimension
         start={
           new THREE.Vector3(
-            0,
+            dimPlane,
             -model.wall.thickness / 2 - model.foundation.left,
             -totalHeight / 2,
           )
         }
-        end={new THREE.Vector3(0, -model.wall.thickness / 2, -totalHeight / 2)}
+        end={
+          new THREE.Vector3(
+            dimPlane,
+            -model.wall.thickness / 2,
+            -totalHeight / 2,
+          )
+        }
         up={new THREE.Vector3(0, 0, 1)}
         offset={-200}
         onChange={setFoundationLeft}
       />
       <LineDimension
-        start={new THREE.Vector3(0, model.wall.thickness / 2, -totalHeight / 2)}
+        start={
+          new THREE.Vector3(
+            dimPlane,
+            model.wall.thickness / 2,
+            -totalHeight / 2,
+          )
+        }
         end={
           new THREE.Vector3(
-            0,
+            dimPlane,
             model.wall.thickness / 2 + model.foundation.right,
             -totalHeight / 2,
           )
@@ -243,7 +288,7 @@ export function ModelCanvas() {
       <LineDimension
         start={
           new THREE.Vector3(
-            0,
+            dimPlane,
             rightEdge,
             -totalHeight / 2 +
               groundRight[groundRight.length - 1].top +
@@ -252,7 +297,7 @@ export function ModelCanvas() {
         }
         end={
           new THREE.Vector3(
-            0,
+            dimPlane,
             rightEdge,
             -totalHeight / 2 +
               groundRight[groundRight.length - 1].top +
@@ -267,7 +312,7 @@ export function ModelCanvas() {
       <AngleDimension
         vertex={
           new THREE.Vector3(
-            0,
+            dimPlane,
             model.wall.thickness / 2 + rightGroundWidth / 2,
             -totalHeight / 2 + groundRight[groundRight.length - 1].top,
           )
@@ -285,9 +330,19 @@ export function ModelCanvas() {
           </mesh>
           <LineDimension
             start={
-              new THREE.Vector3(0, leftEdge, -totalHeight / 2 + ground.bottom)
+              new THREE.Vector3(
+                dimPlane,
+                leftEdge,
+                -totalHeight / 2 + ground.bottom,
+              )
             }
-            end={new THREE.Vector3(0, leftEdge, -totalHeight / 2 + ground.top)}
+            end={
+              new THREE.Vector3(
+                dimPlane,
+                leftEdge,
+                -totalHeight / 2 + ground.top,
+              )
+            }
             up={new THREE.Vector3(0, -1, 0)}
             offset={200}
             onChange={(v) => setGroundThickness("left", index, v)}
@@ -295,8 +350,8 @@ export function ModelCanvas() {
           <MaterialSelect
             position={
               new THREE.Vector3(
-                0,
-                leftEdge + 500,
+                dimPlane,
+                leftEdge + 400,
                 -totalHeight / 2 + ground.middle,
               )
             }
@@ -356,9 +411,19 @@ export function ModelCanvas() {
           </mesh>
           <LineDimension
             start={
-              new THREE.Vector3(0, rightEdge, -totalHeight / 2 + ground.bottom)
+              new THREE.Vector3(
+                dimPlane,
+                rightEdge,
+                -totalHeight / 2 + ground.bottom,
+              )
             }
-            end={new THREE.Vector3(0, rightEdge, -totalHeight / 2 + ground.top)}
+            end={
+              new THREE.Vector3(
+                dimPlane,
+                rightEdge,
+                -totalHeight / 2 + ground.top,
+              )
+            }
             up={new THREE.Vector3(0, 1, 0)}
             offset={200}
             onChange={(v) => setGroundThickness("right", index, v)}
@@ -366,8 +431,8 @@ export function ModelCanvas() {
           <MaterialSelect
             position={
               new THREE.Vector3(
-                0,
-                rightEdge - 500,
+                dimPlane,
+                rightEdge - 400,
                 -totalHeight / 2 + ground.middle,
               )
             }

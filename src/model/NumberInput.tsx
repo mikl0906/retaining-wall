@@ -61,7 +61,7 @@ export function NumberInput({
         />
       ) : (
         <div
-          className={`px-2 bg-background/50 rounded-md border text-nowrap ${onChange ? "cursor-pointer" : ""}`}
+          className={`px-2 rounded-md border text-nowrap ${onChange ? "cursor-pointer bg-background/60" : "bg-background/20"}`}
           onClick={onChange ? startEditing : undefined}
         >
           {value} {unit}
