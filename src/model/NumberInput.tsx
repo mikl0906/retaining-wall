@@ -28,8 +28,8 @@ export function NumberInput({
   }
 
   function commitEdit() {
-    const num = parseFloat(inputValue);
-    if (!isFinite(num) || num <= 0) {
+    const num = Number.parseFloat(inputValue);
+    if (!Number.isFinite(num)) {
       setError(true);
       return;
     }

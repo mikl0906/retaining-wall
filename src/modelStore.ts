@@ -60,6 +60,7 @@ export const useModel = create<Model>()(
   }),
 );
 
+// Materials
 export const addMaterial = (material: GroundMaterial) => {
   useModel.setState((state) => ({
     ...state,
@@ -67,6 +68,14 @@ export const addMaterial = (material: GroundMaterial) => {
   }));
 };
 
+export const removeMaterial = (materialId: string) => {
+  useModel.setState((state) => ({
+    ...state,
+    materials: state.materials.filter((m) => m.id !== materialId),
+  }));
+};
+
+// Geometry
 export const setWallHeight = (height: number) => {
   useModel.setState((state) => ({
     ...state,
@@ -137,6 +146,16 @@ export const setSlabAngle = (angle: number) => {
   }));
 };
 
+// Loads
+
+export const setLiveLoad = (liveLoad: number) => {
+  useModel.setState((state) => ({
+    ...state,
+    liveLoad,
+  }));
+};
+
+// Ground
 export const setGroundThickness = (
   ground: "left" | "right",
   index: number,

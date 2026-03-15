@@ -28,7 +28,7 @@ export function App() {
       {/* <div className="absolute w-[50%] h-[50%] right-2 bottom-2">
         <ReportPreview />
         </div> */}
-      <Toaster richColors />
+      <Toaster richColors position="top-right" />
     </ThemeProvider>
   );
 }

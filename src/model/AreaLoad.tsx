@@ -2,12 +2,12 @@ import * as THREE from "three";
 import { Instance, Instances, Line } from "@react-three/drei";
 import { NumberInput } from "./NumberInput";
 
-const arrowMinLength = 100;
-const arrowScale = 50;
-const arrowSpacing = 400;
+const arrowMinLength = 80;
+const arrowScale = 30;
+const arrowSpacing = 300;
 
-const coneGeometry = new THREE.ConeGeometry(20, 100, 12);
-coneGeometry.translate(0, -50, 0);
+const coneGeometry = new THREE.ConeGeometry(20, 80, 12);
+coneGeometry.translate(0, -40, 0);
 coneGeometry.rotateX(-Math.PI / 2);
 
 interface AreaLoadProps {
@@ -102,7 +102,9 @@ export function AreaLoad({
   const minValue = Math.min(...polygon.map((p) => p.value));
   const maxValue = Math.max(...polygon.map((p) => p.value));
   const value =
-    maxValue - minValue > 0.1 ? `${minValue}...${maxValue}` : `${maxValue}`;
+    maxValue - minValue > 0.1
+      ? `${minValue.toFixed(1)}...${maxValue.toFixed(1)}`
+      : `${maxValue.toFixed(1)}`;
 
   return (
     <group position={origin} rotation={rotation}>

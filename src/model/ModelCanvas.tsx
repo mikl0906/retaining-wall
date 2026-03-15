@@ -7,6 +7,7 @@ import {
   setFoundationThickness,
   setGroundMaterial,
   setGroundThickness,
+  setLiveLoad,
   setSlabAngle,
   setSlabThickness,
   setWallHeight,
@@ -40,6 +41,49 @@ const soilMaterial = new THREE.MeshStandardMaterial({
 });
 
 export function ModelCanvas() {
+  return (
+    <Canvas>
+      <ambientLight />
+      <directionalLight position={[3, 0, 10]} />
+      <PerspectiveCamera
+        makeDefault
+        position={[7000, 2000, 2000]}
+        near={1}
+        far={10000000}
+      />
+      <CameraControls
+        makeDefault
+        truckSpeed={0}
+        dollySpeed={1}
+        minDistance={2000}
+        maxDistance={20000}
+        draggingSmoothTime={0.1}
+      />
+      <Scene />
+    </Canvas>
+  );
+}
+
+const getPressureValue = (
+  layers: {
+    bottom: number;
+    top: number;
+  }[],
+  pressures: [number, number][],
+  z: number,
+) => {
+  for (let i = 0; i < layers.length; i++) {
+    const layer = layers[i];
+    if (z >= layer.bottom && z <= layer.top) {
+      const [topPressure, bottomPressure] = pressures[i];
+      const t = (z - layer.bottom) / (layer.top - layer.bottom);
+      return topPressure + t * (bottomPressure - topPressure);
+    }
+  }
+  return 0;
+};
+
+function Scene() {
   const model = useModel();
 
   const totalHeight = model.wall.height + model.foundation.thickness;
@@ -57,7 +101,7 @@ export function ModelCanvas() {
   foundation.translate(
     0,
     (model.foundation.right - model.foundation.left) / 2,
-    -totalHeight / 2 + model.foundation.thickness / 2,
+    model.foundation.thickness / 2,
   );
 
   const groundLeft: {
@@ -72,7 +116,7 @@ export function ModelCanvas() {
     g.translate(
       0,
       leftEdge + leftGroundWidth / 2,
-      -totalHeight / 2 + bottom + layer.thickness / 2,
+      bottom + layer.thickness / 2,
     );
     groundLeft.push({
       bottom,
@@ -102,7 +146,7 @@ export function ModelCanvas() {
     g.translate(
       0,
       rightEdge - rightGroundWidth / 2,
-      -totalHeight / 2 + bottom + layer.thickness / 2 + addHeight / 2,
+      bottom + layer.thickness / 2 + addHeight / 2,
     );
     let geometry = cutGeometryByPart(g, foundation);
     if (isTopLayer) {
@@ -113,7 +157,7 @@ export function ModelCanvas() {
       planeMatrix.setPosition(
         0,
         rightEdge - rightGroundWidth / 2,
-        -totalHeight / 2 + bottom + layer.thickness + addHeight / 2,
+        bottom + layer.thickness + addHeight / 2,
       );
 
       geometry = cutGeometryByPlane(geometry, planeMatrix);
@@ -127,14 +171,14 @@ export function ModelCanvas() {
     bottom += layer.thickness;
     i++;
   }
+  const groundRightTop = groundRight[groundRight.length - 1].top;
 
   const leftGroundPressure = computeGroundPressure(
     model.groundLeft,
     model.materials,
-    model.slab.angle,
-    model.liveLoad,
+    0,
+    0,
   );
-  console.log(leftGroundPressure);
 
   const rightGroundPressure = computeGroundPressure(
     model.groundRight,
@@ -142,7 +186,6 @@ export function ModelCanvas() {
     model.slab.angle,
     model.liveLoad,
   );
-  console.log(rightGroundPressure);
 
   const slab = new THREE.BoxGeometry(
     1000,
@@ -153,34 +196,17 @@ export function ModelCanvas() {
   slabMatrix.setPosition(
     0,
     model.wall.thickness / 2 + rightGroundWidth / 2,
-    -totalHeight / 2 +
-      groundRight[groundRight.length - 1].top +
+    groundRightTop +
       model.slab.thickness / 2 +
       (tanAlpha * rightGroundWidth) / 2,
   );
   slab.applyMatrix4(slabMatrix);
 
   return (
-    <Canvas>
-      <ambientLight />
-      <directionalLight position={[3, 0, 10]} />
-      <PerspectiveCamera
-        makeDefault
-        position={[7000, 2000, 2000]}
-        near={1}
-        far={10000000}
-      />
-      <CameraControls
-        makeDefault
-        truckSpeed={0}
-        dollySpeed={1}
-        minDistance={2000}
-        maxDistance={20000}
-        draggingSmoothTime={0.1}
-      />
+    <group position={[0, 0, -totalHeight / 2]}>
       {/* Wall */}
       <mesh
-        position={[0, 0, model.foundation.thickness / 2]}
+        position={[0, 0, totalHeight / 2 + model.foundation.thickness / 2]}
         material={concreteMaterial}
       >
         <boxGeometry args={[1000, model.wall.thickness, model.wall.height]} />
@@ -191,15 +217,11 @@ export function ModelCanvas() {
           new THREE.Vector3(
             dimPlane,
             -model.wall.thickness / 2,
-            -totalHeight / 2 + model.foundation.thickness,
+            model.foundation.thickness,
           )
         }
         end={
-          new THREE.Vector3(
-            dimPlane,
-            -model.wall.thickness / 2,
-            totalHeight / 2,
-          )
+          new THREE.Vector3(dimPlane, -model.wall.thickness / 2, totalHeight)
         }
         up={new THREE.Vector3(0, -1, 0)}
         offset={model.foundation.left + 300}
@@ -207,15 +229,9 @@ export function ModelCanvas() {
       />
       <LineDimension
         start={
-          new THREE.Vector3(
-            dimPlane,
-            -model.wall.thickness / 2,
-            totalHeight / 2,
-          )
+          new THREE.Vector3(dimPlane, -model.wall.thickness / 2, totalHeight)
         }
-        end={
-          new THREE.Vector3(dimPlane, model.wall.thickness / 2, totalHeight / 2)
-        }
+        end={new THREE.Vector3(dimPlane, model.wall.thickness / 2, totalHeight)}
         up={new THREE.Vector3(0, 0, 1)}
         offset={200}
         onChange={setWallThickness}
@@ -229,14 +245,14 @@ export function ModelCanvas() {
           new THREE.Vector3(
             dimPlane,
             -model.wall.thickness / 2 - model.foundation.left,
-            -totalHeight / 2,
+            0,
           )
         }
         end={
           new THREE.Vector3(
             dimPlane,
             -model.wall.thickness / 2 - model.foundation.left,
-            -totalHeight / 2 + model.foundation.thickness,
+            model.foundation.thickness,
           )
         }
         up={new THREE.Vector3(0, -1, 0)}
@@ -248,33 +264,21 @@ export function ModelCanvas() {
           new THREE.Vector3(
             dimPlane,
             -model.wall.thickness / 2 - model.foundation.left,
-            -totalHeight / 2,
+            0,
           )
         }
-        end={
-          new THREE.Vector3(
-            dimPlane,
-            -model.wall.thickness / 2,
-            -totalHeight / 2,
-          )
-        }
+        end={new THREE.Vector3(dimPlane, -model.wall.thickness / 2, 0)}
         up={new THREE.Vector3(0, 0, 1)}
         offset={-200}
         onChange={setFoundationLeft}
       />
       <LineDimension
-        start={
-          new THREE.Vector3(
-            dimPlane,
-            model.wall.thickness / 2,
-            -totalHeight / 2,
-          )
-        }
+        start={new THREE.Vector3(dimPlane, model.wall.thickness / 2, 0)}
         end={
           new THREE.Vector3(
             dimPlane,
             model.wall.thickness / 2 + model.foundation.right,
-            -totalHeight / 2,
+            0,
           )
         }
         up={new THREE.Vector3(0, 0, 1)}
@@ -290,8 +294,7 @@ export function ModelCanvas() {
           new THREE.Vector3(
             dimPlane,
             rightEdge,
-            -totalHeight / 2 +
-              groundRight[groundRight.length - 1].top +
+            groundRight[groundRight.length - 1].top +
               tanAlpha * rightGroundWidth,
           )
         }
@@ -299,8 +302,7 @@ export function ModelCanvas() {
           new THREE.Vector3(
             dimPlane,
             rightEdge,
-            -totalHeight / 2 +
-              groundRight[groundRight.length - 1].top +
+            groundRight[groundRight.length - 1].top +
               tanAlpha * rightGroundWidth +
               model.slab.thickness,
           )
@@ -314,7 +316,7 @@ export function ModelCanvas() {
           new THREE.Vector3(
             dimPlane,
             model.wall.thickness / 2 + rightGroundWidth / 2,
-            -totalHeight / 2 + groundRight[groundRight.length - 1].top,
+            groundRight[groundRight.length - 1].top,
           )
         }
         from={new THREE.Vector3(0, 1, 0)}
@@ -329,31 +331,15 @@ export function ModelCanvas() {
             <Edges color="orange" />
           </mesh>
           <LineDimension
-            start={
-              new THREE.Vector3(
-                dimPlane,
-                leftEdge,
-                -totalHeight / 2 + ground.bottom,
-              )
-            }
-            end={
-              new THREE.Vector3(
-                dimPlane,
-                leftEdge,
-                -totalHeight / 2 + ground.top,
-              )
-            }
+            start={new THREE.Vector3(dimPlane, leftEdge, ground.bottom)}
+            end={new THREE.Vector3(dimPlane, leftEdge, ground.top)}
             up={new THREE.Vector3(0, -1, 0)}
             offset={200}
             onChange={(v) => setGroundThickness("left", index, v)}
           />
           <MaterialSelect
             position={
-              new THREE.Vector3(
-                dimPlane,
-                leftEdge + 400,
-                -totalHeight / 2 + ground.middle,
-              )
+              new THREE.Vector3(dimPlane, leftEdge + 400, ground.middle)
             }
             value={
               model.materials.find(
@@ -365,42 +351,195 @@ export function ModelCanvas() {
               setGroundMaterial("left", index, material.id);
             }}
           />
-          <AreaLoad
-            polygon={[
-              {
-                x: 500,
-                y: -model.wall.thickness / 2,
-                z: Math.max(
-                  -totalHeight / 2 + ground.bottom,
-                  -totalHeight / 2 + model.foundation.thickness,
-                ),
-                value: 5,
-              },
-              {
-                x: -500,
-                y: -model.wall.thickness / 2,
-                z: Math.max(
-                  -totalHeight / 2 + ground.bottom,
-                  -totalHeight / 2 + model.foundation.thickness,
-                ),
-                value: 5,
-              },
-              {
-                x: -500,
-                y: -model.wall.thickness / 2,
-                z: -totalHeight / 2 + ground.top,
-                value: 2,
-              },
-              {
-                x: 500,
-                y: -model.wall.thickness / 2,
-                z: -totalHeight / 2 + ground.top,
-                value: 2,
-              },
-            ]}
-            normal={{ x: 0, y: -1, z: 0 }}
-            color="orange"
-          />
+          {ground.top < model.foundation.thickness ? (
+            <AreaLoad
+              polygon={[
+                {
+                  x: 500,
+                  y: -model.wall.thickness / 2 - model.foundation.left,
+                  z: ground.bottom,
+                  value: leftGroundPressure.passivePressure[index][0],
+                },
+                {
+                  x: -500,
+                  y: -model.wall.thickness / 2 - model.foundation.left,
+                  z: ground.bottom,
+                  value: leftGroundPressure.passivePressure[index][0],
+                },
+                {
+                  x: -500,
+                  y: -model.wall.thickness / 2 - model.foundation.left,
+                  z: ground.top,
+                  value: leftGroundPressure.passivePressure[index][1],
+                },
+                {
+                  x: 500,
+                  y: -model.wall.thickness / 2 - model.foundation.left,
+                  z: ground.top,
+                  value: leftGroundPressure.passivePressure[index][1],
+                },
+              ]}
+              normal={{ x: 0, y: -1, z: 0 }}
+              color="lightblue"
+            />
+          ) : ground.bottom < model.foundation.thickness &&
+            ground.top > model.foundation.thickness ? (
+            <>
+              <AreaLoad
+                polygon={[
+                  {
+                    x: 500,
+                    y: -model.wall.thickness / 2 - model.foundation.left,
+                    z: ground.bottom,
+                    value: leftGroundPressure.passivePressure[index][0],
+                  },
+                  {
+                    x: -500,
+                    y: -model.wall.thickness / 2 - model.foundation.left,
+                    z: ground.bottom,
+                    value: leftGroundPressure.passivePressure[index][0],
+                  },
+                  {
+                    x: -500,
+                    y: -model.wall.thickness / 2 - model.foundation.left,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundLeft,
+                      leftGroundPressure.passivePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                  {
+                    x: 500,
+                    y: -model.wall.thickness / 2 - model.foundation.left,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundLeft,
+                      leftGroundPressure.passivePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                ]}
+                normal={{ x: 0, y: -1, z: 0 }}
+                color="lightblue"
+              />
+              <AreaLoad
+                polygon={[
+                  {
+                    x: 500,
+                    y: -model.wall.thickness / 2,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundLeft,
+                      leftGroundPressure.passivePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                  {
+                    x: -500,
+                    y: -model.wall.thickness / 2,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundLeft,
+                      leftGroundPressure.passivePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                  {
+                    x: -500,
+                    y: -model.wall.thickness / 2,
+                    z: ground.top,
+                    value: leftGroundPressure.passivePressure[index][1],
+                  },
+                  {
+                    x: 500,
+                    y: -model.wall.thickness / 2,
+                    z: ground.top,
+                    value: leftGroundPressure.passivePressure[index][1],
+                  },
+                ]}
+                normal={{ x: 0, y: -1, z: 0 }}
+                color="lightblue"
+              />
+              <AreaLoad
+                polygon={[
+                  {
+                    x: 500,
+                    y: -model.wall.thickness / 2,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundLeft,
+                      leftGroundPressure.passivePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                  {
+                    x: -500,
+                    y: -model.wall.thickness / 2,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundLeft,
+                      leftGroundPressure.passivePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                  {
+                    x: -500,
+                    y: -model.wall.thickness / 2 - model.foundation.left,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundLeft,
+                      leftGroundPressure.passivePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                  {
+                    x: 500,
+                    y: -model.wall.thickness / 2 - model.foundation.left,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundLeft,
+                      leftGroundPressure.passivePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                ]}
+                normal={{ x: 0, y: 0, z: 1 }}
+                color="orange"
+              />
+            </>
+          ) : (
+            <AreaLoad
+              polygon={[
+                {
+                  x: 500,
+                  y: -model.wall.thickness / 2,
+                  z: ground.bottom,
+                  value: leftGroundPressure.passivePressure[index][0],
+                },
+                {
+                  x: -500,
+                  y: -model.wall.thickness / 2,
+                  z: ground.bottom,
+                  value: leftGroundPressure.passivePressure[index][0],
+                },
+                {
+                  x: -500,
+                  y: -model.wall.thickness / 2,
+                  z: ground.top,
+                  value: leftGroundPressure.passivePressure[index][1],
+                },
+                {
+                  x: 500,
+                  y: -model.wall.thickness / 2,
+                  z: ground.top,
+                  value: leftGroundPressure.passivePressure[index][1],
+                },
+              ]}
+              normal={{ x: 0, y: -1, z: 0 }}
+              color="lightblue"
+            />
+          )}
         </React.Fragment>
       ))}
       {/* Ground right */}
@@ -410,31 +549,15 @@ export function ModelCanvas() {
             <Edges color="orange" />
           </mesh>
           <LineDimension
-            start={
-              new THREE.Vector3(
-                dimPlane,
-                rightEdge,
-                -totalHeight / 2 + ground.bottom,
-              )
-            }
-            end={
-              new THREE.Vector3(
-                dimPlane,
-                rightEdge,
-                -totalHeight / 2 + ground.top,
-              )
-            }
+            start={new THREE.Vector3(dimPlane, rightEdge, ground.bottom)}
+            end={new THREE.Vector3(dimPlane, rightEdge, ground.top)}
             up={new THREE.Vector3(0, 1, 0)}
             offset={200}
             onChange={(v) => setGroundThickness("right", index, v)}
           />
           <MaterialSelect
             position={
-              new THREE.Vector3(
-                dimPlane,
-                rightEdge - 400,
-                -totalHeight / 2 + ground.middle,
-              )
+              new THREE.Vector3(dimPlane, rightEdge - 400, ground.middle)
             }
             value={
               model.materials.find(
@@ -446,42 +569,195 @@ export function ModelCanvas() {
               setGroundMaterial("right", index, material.id);
             }}
           />
-          <AreaLoad
-            polygon={[
-              {
-                x: 500,
-                y: model.wall.thickness / 2,
-                z: Math.max(
-                  -totalHeight / 2 + ground.bottom,
-                  -totalHeight / 2 + model.foundation.thickness,
-                ),
-                value: 5,
-              },
-              {
-                x: -500,
-                y: model.wall.thickness / 2,
-                z: Math.max(
-                  -totalHeight / 2 + ground.bottom,
-                  -totalHeight / 2 + model.foundation.thickness,
-                ),
-                value: 5,
-              },
-              {
-                x: -500,
-                y: model.wall.thickness / 2,
-                z: -totalHeight / 2 + ground.top,
-                value: 2,
-              },
-              {
-                x: 500,
-                y: model.wall.thickness / 2,
-                z: -totalHeight / 2 + ground.top,
-                value: 2,
-              },
-            ]}
-            normal={{ x: 0, y: 1, z: 0 }}
-            color="orange"
-          />
+          {ground.top < model.foundation.thickness ? (
+            <AreaLoad
+              polygon={[
+                {
+                  x: 500,
+                  y: model.wall.thickness / 2 + model.foundation.right,
+                  z: ground.bottom,
+                  value: rightGroundPressure.activePressure[index][0],
+                },
+                {
+                  x: -500,
+                  y: model.wall.thickness / 2 + model.foundation.right,
+                  z: ground.bottom,
+                  value: rightGroundPressure.activePressure[index][0],
+                },
+                {
+                  x: -500,
+                  y: model.wall.thickness / 2 + model.foundation.right,
+                  z: ground.top,
+                  value: rightGroundPressure.activePressure[index][1],
+                },
+                {
+                  x: 500,
+                  y: model.wall.thickness / 2 + model.foundation.right,
+                  z: ground.top,
+                  value: rightGroundPressure.activePressure[index][1],
+                },
+              ]}
+              normal={{ x: 0, y: 1, z: 0 }}
+              color="orange"
+            />
+          ) : ground.bottom < model.foundation.thickness &&
+            ground.top > model.foundation.thickness ? (
+            <>
+              <AreaLoad
+                polygon={[
+                  {
+                    x: 500,
+                    y: model.wall.thickness / 2 + model.foundation.right,
+                    z: ground.bottom,
+                    value: rightGroundPressure.activePressure[index][0],
+                  },
+                  {
+                    x: -500,
+                    y: model.wall.thickness / 2 + model.foundation.right,
+                    z: ground.bottom,
+                    value: rightGroundPressure.activePressure[index][0],
+                  },
+                  {
+                    x: -500,
+                    y: model.wall.thickness / 2 + model.foundation.right,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundRight,
+                      rightGroundPressure.activePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                  {
+                    x: 500,
+                    y: model.wall.thickness / 2 + model.foundation.right,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundRight,
+                      rightGroundPressure.activePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                ]}
+                normal={{ x: 0, y: 1, z: 0 }}
+                color="orange"
+              />
+              <AreaLoad
+                polygon={[
+                  {
+                    x: 500,
+                    y: model.wall.thickness / 2,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundRight,
+                      rightGroundPressure.activePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                  {
+                    x: -500,
+                    y: model.wall.thickness / 2,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundRight,
+                      rightGroundPressure.activePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                  {
+                    x: -500,
+                    y: model.wall.thickness / 2,
+                    z: ground.top,
+                    value: rightGroundPressure.activePressure[index][1],
+                  },
+                  {
+                    x: 500,
+                    y: model.wall.thickness / 2,
+                    z: ground.top,
+                    value: rightGroundPressure.activePressure[index][1],
+                  },
+                ]}
+                normal={{ x: 0, y: 1, z: 0 }}
+                color="orange"
+              />
+              <AreaLoad
+                polygon={[
+                  {
+                    x: 500,
+                    y: model.wall.thickness / 2,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundLeft,
+                      rightGroundPressure.activePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                  {
+                    x: -500,
+                    y: model.wall.thickness / 2,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundLeft,
+                      rightGroundPressure.activePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                  {
+                    x: -500,
+                    y: model.wall.thickness / 2 + model.foundation.right,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundLeft,
+                      rightGroundPressure.activePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                  {
+                    x: 500,
+                    y: model.wall.thickness / 2 + model.foundation.right,
+                    z: model.foundation.thickness,
+                    value: getPressureValue(
+                      groundLeft,
+                      rightGroundPressure.activePressure,
+                      model.foundation.thickness,
+                    ),
+                  },
+                ]}
+                normal={{ x: 0, y: 0, z: 1 }}
+                color="orange"
+              />
+            </>
+          ) : (
+            <AreaLoad
+              polygon={[
+                {
+                  x: 500,
+                  y: model.wall.thickness / 2,
+                  z: ground.bottom,
+                  value: rightGroundPressure.activePressure[index][0],
+                },
+                {
+                  x: -500,
+                  y: model.wall.thickness / 2,
+                  z: ground.bottom,
+                  value: rightGroundPressure.activePressure[index][0],
+                },
+                {
+                  x: -500,
+                  y: model.wall.thickness / 2,
+                  z: ground.top,
+                  value: rightGroundPressure.activePressure[index][1],
+                },
+                {
+                  x: 500,
+                  y: model.wall.thickness / 2,
+                  z: ground.top,
+                  value: rightGroundPressure.activePressure[index][1],
+                },
+              ]}
+              normal={{ x: 0, y: 1, z: 0 }}
+              color="orange"
+            />
+          )}
         </React.Fragment>
       ))}
       {/* Live load */}
@@ -490,17 +766,13 @@ export function ModelCanvas() {
           {
             x: 500,
             y: model.wall.thickness / 2,
-            z:
-              -totalHeight / 2 +
-              groundRight[groundRight.length - 1].top +
-              model.slab.thickness,
+            z: groundRight[groundRight.length - 1].top + model.slab.thickness,
             value: model.liveLoad,
           },
           {
             x: 500,
             y: model.wall.thickness / 2 + rightGroundWidth,
             z:
-              -totalHeight / 2 +
               groundRight[groundRight.length - 1].top +
               model.slab.thickness +
               tanAlpha * rightGroundWidth,
@@ -510,7 +782,6 @@ export function ModelCanvas() {
             x: -500,
             y: model.wall.thickness / 2 + rightGroundWidth,
             z:
-              -totalHeight / 2 +
               groundRight[groundRight.length - 1].top +
               model.slab.thickness +
               tanAlpha * rightGroundWidth,
@@ -519,135 +790,13 @@ export function ModelCanvas() {
           {
             x: -500,
             y: model.wall.thickness / 2,
-            z:
-              -totalHeight / 2 +
-              groundRight[groundRight.length - 1].top +
-              model.slab.thickness,
+            z: groundRight[groundRight.length - 1].top + model.slab.thickness,
             value: model.liveLoad,
           },
         ]}
         normal={{ x: 0, y: 0, z: 1 }}
+        onChange={setLiveLoad}
       />
-      <AreaLoad
-        polygon={[
-          {
-            x: 500,
-            y: -model.wall.thickness / 2 - model.foundation.left,
-            z: -totalHeight / 2,
-            value: 3,
-          },
-          {
-            x: -500,
-            y: -model.wall.thickness / 2 - model.foundation.left,
-            z: -totalHeight / 2,
-            value: 3,
-          },
-          {
-            x: -500,
-            y: -model.wall.thickness / 2 - model.foundation.left,
-            z: -totalHeight / 2 + model.foundation.thickness,
-            value: 2,
-          },
-          {
-            x: 500,
-            y: -model.wall.thickness / 2 - model.foundation.left,
-            z: -totalHeight / 2 + model.foundation.thickness,
-            value: 2,
-          },
-        ]}
-        normal={{ x: 0, y: -1, z: 0 }}
-        color="orange"
-      />
-      <AreaLoad
-        polygon={[
-          {
-            x: 500,
-            y: -model.wall.thickness / 2,
-            z: -totalHeight / 2 + model.foundation.thickness,
-            value: 2,
-          },
-          {
-            x: -500,
-            y: -model.wall.thickness / 2,
-            z: -totalHeight / 2 + model.foundation.thickness,
-            value: 2,
-          },
-          {
-            x: -500,
-            y: -model.wall.thickness / 2 - model.foundation.left,
-            z: -totalHeight / 2 + model.foundation.thickness,
-            value: 2,
-          },
-          {
-            x: 500,
-            y: -model.wall.thickness / 2 - model.foundation.left,
-            z: -totalHeight / 2 + model.foundation.thickness,
-            value: 2,
-          },
-        ]}
-        normal={{ x: 0, y: 0, z: 1 }}
-        color="orange"
-      />
-      <AreaLoad
-        polygon={[
-          {
-            x: 500,
-            y: model.wall.thickness / 2 + model.foundation.right,
-            z: -totalHeight / 2,
-            value: 3,
-          },
-          {
-            x: -500,
-            y: model.wall.thickness / 2 + model.foundation.right,
-            z: -totalHeight / 2,
-            value: 3,
-          },
-          {
-            x: -500,
-            y: model.wall.thickness / 2 + model.foundation.right,
-            z: -totalHeight / 2 + model.foundation.thickness,
-            value: 2,
-          },
-          {
-            x: 500,
-            y: model.wall.thickness / 2 + model.foundation.right,
-            z: -totalHeight / 2 + model.foundation.thickness,
-            value: 2,
-          },
-        ]}
-        normal={{ x: 0, y: 1, z: 0 }}
-        color="orange"
-      />
-      <AreaLoad
-        polygon={[
-          {
-            x: 500,
-            y: model.wall.thickness / 2,
-            z: -totalHeight / 2 + model.foundation.thickness,
-            value: 2,
-          },
-          {
-            x: -500,
-            y: model.wall.thickness / 2,
-            z: -totalHeight / 2 + model.foundation.thickness,
-            value: 2,
-          },
-          {
-            x: -500,
-            y: model.wall.thickness / 2 + model.foundation.right,
-            z: -totalHeight / 2 + model.foundation.thickness,
-            value: 2,
-          },
-          {
-            x: 500,
-            y: model.wall.thickness / 2 + model.foundation.right,
-            z: -totalHeight / 2 + model.foundation.thickness,
-            value: 2,
-          },
-        ]}
-        normal={{ x: 0, y: 0, z: 1 }}
-        color="orange"
-      />
-    </Canvas>
+    </group>
   );
 }

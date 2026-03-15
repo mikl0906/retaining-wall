@@ -14,7 +14,10 @@ export const computeGroundPressure = (
   const passivePressure: [number, number][] = [];
   const activePressure: [number, number][] = [];
 
-  for (const layer of layers) {
+  // The layers come from bottom to top, but we need to calculate pressure from top to bottom, so we reverse the order
+
+  for (let i = layers.length - 1; i >= 0; i--) {
+    const layer = layers[i];
     const material = materials.find((m) => m.id === layer.materialId);
     if (!material) {
       console.warn(`Material with id ${layer.materialId} not found`);
@@ -32,9 +35,13 @@ export const computeGroundPressure = (
     const bottomPassive = ko * load;
     const bottomActive = ka * load;
 
-    passivePressure.push([topPassive, bottomPassive]);
-    activePressure.push([topActive, bottomActive]);
+    passivePressure.push([bottomPassive, topPassive]);
+    activePressure.push([bottomActive, topActive]);
   }
+
+  // We reverse the pressures back to match the original order of layers (from bottom to top)
+  passivePressure.reverse();
+  activePressure.reverse();
 
   return {
     passivePressure,
