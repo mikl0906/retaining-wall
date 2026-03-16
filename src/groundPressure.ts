@@ -1,4 +1,4 @@
-import type { GroundLayer, GroundMaterial } from "./types";
+import type { GroundLayer, GroundMaterial, Pressure } from "./types";
 
 export const computeGroundPressure = (
   layers: GroundLayer[],
@@ -6,13 +6,13 @@ export const computeGroundPressure = (
   betta: number,
   q_d: number,
 ): {
-  passivePressure: { bottom: number; top: number }[];
-  activePressure: { bottom: number; top: number }[];
+  passivePressure: Pressure;
+  activePressure: Pressure;
 } => {
   let load = q_d;
 
-  const passivePressure: { bottom: number; top: number }[] = [];
-  const activePressure: { bottom: number; top: number }[] = [];
+  const passivePressure: Pressure = [];
+  const activePressure: Pressure = [];
 
   // The layers come from bottom to top, but we need to calculate pressure from top to bottom, so we reverse the order
 

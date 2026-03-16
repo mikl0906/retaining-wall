@@ -17,14 +17,14 @@ export function PartialFactorsCard() {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
-          <p>
+          {/* <p>
             Permanent load γ<sub>g</sub>
           </p>
           <Input className="w-25" value={model.gammaDL} />
           <p>
             Variable load γ<sub>q</sub>
           </p>
-          <Input className="w-25" value={model.gammaLL} />
+          <Input className="w-25" value={model.gammaLL} /> */}
           <p>
             Destabilizing load γ<sub>dstb</sub>
           </p>

@@ -33,8 +33,8 @@ export const Model = z.object({
     angle: z.number(), // in degrees, positive means sloping upwards to the right
   }),
   // Loads
-  gammaDL: z.number(), // Partial factor for dead load
-  gammaLL: z.number(), // Partial factor for live load
+  // gammaDL: z.number(), // Partial factor for dead load
+  // gammaLL: z.number(), // Partial factor for live load
   gammaGdst: z.number(), // Partial factor for destabilizing load
   gammaGstb: z.number(), // Partial factor for stabilizing load
   q_k: z.number(), // Live load in kN/m²
@@ -45,3 +45,13 @@ export const Model = z.object({
   groundRight: z.array(GroundLayer),
 });
 export type Model = z.infer<typeof Model>;
+
+// Ground layer levels from the bottom to the top
+export type LayerGeometry = {
+  bottom: number;
+  top: number;
+}[];
+
+// Diagram of ground pressure
+// A list of pressures at the bottom and top of each layer, starting from the bottom layer to the top
+export type Pressure = { bottom: number; top: number }[];

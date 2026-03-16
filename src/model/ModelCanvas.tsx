@@ -21,6 +21,7 @@ import React from "react";
 import { MaterialSelect } from "./MaterialSelect";
 import { AreaLoad } from "./AreaLoad";
 import { computeGroundPressure } from "@/groundPressure";
+import type { Pressure } from "@/types";
 
 // Z direction is up (common for engineering)
 // World length unit is 1 mm (common for engineering)
@@ -69,13 +70,13 @@ const getPressureValue = (
     bottom: number;
     top: number;
   }[],
-  pressures: { bottom: number; top: number }[],
+  pressure: Pressure,
   z: number,
 ) => {
   for (let i = 0; i < layers.length; i++) {
     const layer = layers[i];
     if (z >= layer.bottom && z <= layer.top) {
-      const { top: topPressure, bottom: bottomPressure } = pressures[i];
+      const { top: topPressure, bottom: bottomPressure } = pressure[i];
       const t = (z - layer.bottom) / (layer.top - layer.bottom);
       return bottomPressure + t * (topPressure - bottomPressure);
     }
@@ -185,8 +186,7 @@ function Scene() {
     model.foundation.thickness,
   );
 
-  const q_d =
-    model.gammaDL * model.slab.thickness * 0.025 + model.gammaLL * model.q_k;
+  const q_d = model.slab.thickness * 0.025 + model.q_k;
   const rightGroundPressure = computeGroundPressure(
     model.groundRight,
     model.materials,
