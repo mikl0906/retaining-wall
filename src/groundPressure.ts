@@ -6,13 +6,13 @@ export const computeGroundPressure = (
   betta: number,
   q_d: number,
 ): {
-  passivePressure: [number, number][];
-  activePressure: [number, number][];
+  passivePressure: { bottom: number; top: number }[];
+  activePressure: { bottom: number; top: number }[];
 } => {
   let load = q_d;
 
-  const passivePressure: [number, number][] = [];
-  const activePressure: [number, number][] = [];
+  const passivePressure: { bottom: number; top: number }[] = [];
+  const activePressure: { bottom: number; top: number }[] = [];
 
   // The layers come from bottom to top, but we need to calculate pressure from top to bottom, so we reverse the order
 
@@ -35,8 +35,8 @@ export const computeGroundPressure = (
     const bottomPassive = ko * load;
     const bottomActive = ka * load;
 
-    passivePressure.push([bottomPassive, topPassive]);
-    activePressure.push([bottomActive, topActive]);
+    passivePressure.push({ bottom: bottomPassive, top: topPassive });
+    activePressure.push({ bottom: bottomActive, top: topActive });
   }
 
   // We reverse the pressures back to match the original order of layers (from bottom to top)

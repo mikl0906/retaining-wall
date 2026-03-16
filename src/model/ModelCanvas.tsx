@@ -69,15 +69,15 @@ const getPressureValue = (
     bottom: number;
     top: number;
   }[],
-  pressures: [number, number][],
+  pressures: { bottom: number; top: number }[],
   z: number,
 ) => {
   for (let i = 0; i < layers.length; i++) {
     const layer = layers[i];
     if (z >= layer.bottom && z <= layer.top) {
-      const [topPressure, bottomPressure] = pressures[i];
+      const { top: topPressure, bottom: bottomPressure } = pressures[i];
       const t = (z - layer.bottom) / (layer.top - layer.bottom);
-      return topPressure + t * (bottomPressure - topPressure);
+      return bottomPressure + t * (topPressure - bottomPressure);
     }
   }
   return 0;
@@ -141,12 +141,12 @@ function Scene() {
     const g = new THREE.BoxGeometry(
       1000,
       rightGroundWidth,
-      layer.thickness + addHeight,
+      layer.thickness + Math.max(0, addHeight),
     );
     g.translate(
       0,
       rightEdge - rightGroundWidth / 2,
-      bottom + layer.thickness / 2 + addHeight / 2,
+      bottom + layer.thickness / 2 + Math.max(0, addHeight / 2),
     );
     let geometry = cutGeometryByPart(g, foundation);
     if (isTopLayer) {
@@ -298,7 +298,11 @@ function Scene() {
         onChange={setFoundationRight}
       />
       {/* Ground Slab */}
-      <mesh geometry={slab} material={concreteMaterial}>
+      <mesh
+        geometry={slab}
+        material={concreteMaterial}
+        visible={model.slab.thickness > 0}
+      >
         <Edges color="gray" />
       </mesh>
       <LineDimension
@@ -406,25 +410,25 @@ function Scene() {
                   x: 500,
                   y: -model.wall.thickness / 2 - model.foundation.left,
                   z: ground.bottom,
-                  value: leftGroundPressure.passivePressure[index][0],
+                  value: leftGroundPressure.passivePressure[index].bottom,
                 },
                 {
                   x: -500,
                   y: -model.wall.thickness / 2 - model.foundation.left,
                   z: ground.bottom,
-                  value: leftGroundPressure.passivePressure[index][0],
+                  value: leftGroundPressure.passivePressure[index].bottom,
                 },
                 {
                   x: -500,
                   y: -model.wall.thickness / 2 - model.foundation.left,
                   z: ground.top,
-                  value: leftGroundPressure.passivePressure[index][1],
+                  value: leftGroundPressure.passivePressure[index].top,
                 },
                 {
                   x: 500,
                   y: -model.wall.thickness / 2 - model.foundation.left,
                   z: ground.top,
-                  value: leftGroundPressure.passivePressure[index][1],
+                  value: leftGroundPressure.passivePressure[index].top,
                 },
               ]}
               normal={{ x: 0, y: -1, z: 0 }}
@@ -439,13 +443,13 @@ function Scene() {
                     x: 500,
                     y: -model.wall.thickness / 2 - model.foundation.left,
                     z: ground.bottom,
-                    value: leftGroundPressure.passivePressure[index][0],
+                    value: leftGroundPressure.passivePressure[index].bottom,
                   },
                   {
                     x: -500,
                     y: -model.wall.thickness / 2 - model.foundation.left,
                     z: ground.bottom,
-                    value: leftGroundPressure.passivePressure[index][0],
+                    value: leftGroundPressure.passivePressure[index].bottom,
                   },
                   {
                     x: -500,
@@ -481,13 +485,13 @@ function Scene() {
                     x: -500,
                     y: -model.wall.thickness / 2,
                     z: ground.top,
-                    value: leftGroundPressure.passivePressure[index][1],
+                    value: leftGroundPressure.passivePressure[index].top,
                   },
                   {
                     x: 500,
                     y: -model.wall.thickness / 2,
                     z: ground.top,
-                    value: leftGroundPressure.passivePressure[index][1],
+                    value: leftGroundPressure.passivePressure[index].top,
                   },
                 ]}
                 normal={{ x: 0, y: -1, z: 0 }}
@@ -531,25 +535,25 @@ function Scene() {
                   x: 500,
                   y: -model.wall.thickness / 2,
                   z: ground.bottom,
-                  value: leftGroundPressure.passivePressure[index][0],
+                  value: leftGroundPressure.passivePressure[index].bottom,
                 },
                 {
                   x: -500,
                   y: -model.wall.thickness / 2,
                   z: ground.bottom,
-                  value: leftGroundPressure.passivePressure[index][0],
+                  value: leftGroundPressure.passivePressure[index].bottom,
                 },
                 {
                   x: -500,
                   y: -model.wall.thickness / 2,
                   z: ground.top,
-                  value: leftGroundPressure.passivePressure[index][1],
+                  value: leftGroundPressure.passivePressure[index].top,
                 },
                 {
                   x: 500,
                   y: -model.wall.thickness / 2,
                   z: ground.top,
-                  value: leftGroundPressure.passivePressure[index][1],
+                  value: leftGroundPressure.passivePressure[index].top,
                 },
               ]}
               normal={{ x: 0, y: -1, z: 0 }}
@@ -592,25 +596,25 @@ function Scene() {
                   x: 500,
                   y: model.wall.thickness / 2 + model.foundation.right,
                   z: ground.bottom,
-                  value: rightGroundPressure.activePressure[index][0],
+                  value: rightGroundPressure.activePressure[index].bottom,
                 },
                 {
                   x: -500,
                   y: model.wall.thickness / 2 + model.foundation.right,
                   z: ground.bottom,
-                  value: rightGroundPressure.activePressure[index][0],
+                  value: rightGroundPressure.activePressure[index].bottom,
                 },
                 {
                   x: -500,
                   y: model.wall.thickness / 2 + model.foundation.right,
                   z: ground.top,
-                  value: rightGroundPressure.activePressure[index][1],
+                  value: rightGroundPressure.activePressure[index].top,
                 },
                 {
                   x: 500,
                   y: model.wall.thickness / 2 + model.foundation.right,
                   z: ground.top,
-                  value: rightGroundPressure.activePressure[index][1],
+                  value: rightGroundPressure.activePressure[index].top,
                 },
               ]}
               normal={{ x: 0, y: 1, z: 0 }}
@@ -625,13 +629,13 @@ function Scene() {
                     x: 500,
                     y: model.wall.thickness / 2 + model.foundation.right,
                     z: ground.bottom,
-                    value: rightGroundPressure.activePressure[index][0],
+                    value: rightGroundPressure.activePressure[index].bottom,
                   },
                   {
                     x: -500,
                     y: model.wall.thickness / 2 + model.foundation.right,
                     z: ground.bottom,
-                    value: rightGroundPressure.activePressure[index][0],
+                    value: rightGroundPressure.activePressure[index].bottom,
                   },
                   {
                     x: -500,
@@ -667,13 +671,13 @@ function Scene() {
                     x: -500,
                     y: model.wall.thickness / 2,
                     z: ground.top,
-                    value: rightGroundPressure.activePressure[index][1],
+                    value: rightGroundPressure.activePressure[index].top,
                   },
                   {
                     x: 500,
                     y: model.wall.thickness / 2,
                     z: ground.top,
-                    value: rightGroundPressure.activePressure[index][1],
+                    value: rightGroundPressure.activePressure[index].top,
                   },
                 ]}
                 normal={{ x: 0, y: 1, z: 0 }}
@@ -717,25 +721,25 @@ function Scene() {
                   x: 500,
                   y: model.wall.thickness / 2,
                   z: ground.bottom,
-                  value: rightGroundPressure.activePressure[index][0],
+                  value: rightGroundPressure.activePressure[index].bottom,
                 },
                 {
                   x: -500,
                   y: model.wall.thickness / 2,
                   z: ground.bottom,
-                  value: rightGroundPressure.activePressure[index][0],
+                  value: rightGroundPressure.activePressure[index].bottom,
                 },
                 {
                   x: -500,
                   y: model.wall.thickness / 2,
                   z: ground.top,
-                  value: rightGroundPressure.activePressure[index][1],
+                  value: rightGroundPressure.activePressure[index].top,
                 },
                 {
                   x: 500,
                   y: model.wall.thickness / 2,
                   z: ground.top,
-                  value: rightGroundPressure.activePressure[index][1],
+                  value: rightGroundPressure.activePressure[index].top,
                 },
               ]}
               normal={{ x: 0, y: 1, z: 0 }}

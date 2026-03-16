@@ -42,8 +42,8 @@ function DesktopApp() {
         <div className="absolute top-4 left-4 min-w-80 flex flex-col gap-4">
           <Menu />
           <ModelInfoCard />
-          <MaterialsCard />
           <PartialFactorsCard />
+          <MaterialsCard />
           <ResultsCard />
         </div>
         <div className="absolute top-4 right-4">
@@ -95,8 +95,8 @@ export function MobileApp() {
           <div className="no-scrollbar flex-1 overflow-y-auto px-4">
             <div className="flex flex-col gap-4 pb-4">
               <Menu />
-              <MaterialsCard />
               <PartialFactorsCard />
+              <MaterialsCard />
               <ResultsCard />
             </div>
           </div>
