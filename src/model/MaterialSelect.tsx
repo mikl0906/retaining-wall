@@ -18,7 +18,7 @@ export function MaterialSelect({
   return (
     <Html position={position} center>
       <select
-        value={value.name}
+        value={value.id}
         onChange={(e) =>
           onChange(options.find((option) => option.id === e.target.value)!)
         }

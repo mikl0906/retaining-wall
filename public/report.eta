@@ -25,13 +25,13 @@
     <p>Foundation thickness: <%=it.model.foundation.thickness%> mm</p>
 
     <h2>Partial factors</h2>
-    <p>Dead load γ<sub>g</sub>: <%=it.model.gammaDL%></p>
-    <p>Live load γ<sub>q</sub>: <%=it.model.gammaLL%></p>
+    <p>Permanent load γ<sub>g</sub>: <%=it.model.gammaDL%></p>
+    <p>Variable load γ<sub>q</sub>: <%=it.model.gammaLL%></p>
     <p>Destabilizing load γ<sub>dstb</sub>: <%=it.model.gammaGdst%></p>
     <p>Stabilizing load γ<sub>stb</sub>: <%=it.model.gammaGstb%></p>
 
     <h2>Loads</h2>
-    <p>Live load: <%=it.model.liveLoad%> kN/m<sup>2</sup></p>
+    <p>Live load on slab: <%=it.model.q_k%> kN/m<sup>2</sup></p>
 
     <h2>Materials</h2>
     <table>
@@ -40,7 +40,6 @@
           <th>Material</th>
           <th>Weight (kN/m<sup>3</sup>)</th>
           <th>Friction angle (°)</th>
-          <th>Alpha (°)</th>
         </tr>
       </thead>
       <tbody>
@@ -49,7 +48,6 @@
             <td><%= mat.name %></td>
             <td><%= mat.weight %></td>
             <td><%= mat.phi %></td>
-            <td><%= mat.alpha %></td>
           </tr>
         <% }) %>
       </tbody>

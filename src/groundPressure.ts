@@ -25,7 +25,7 @@ export const computeGroundPressure = (
     }
 
     const ko = getKo(material.phi, betta);
-    const ka = getKa(material.phi, material.alpha, betta);
+    const ka = getKa(material.phi, 0, betta);
 
     const topPassive = ko * load;
     const topActive = ka * load;

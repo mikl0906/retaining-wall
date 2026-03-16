@@ -179,12 +179,24 @@ function Scene() {
     0,
     0,
   );
+  const leftGroundPressureAtFoundation = getPressureValue(
+    groundLeft,
+    leftGroundPressure.passivePressure,
+    model.foundation.thickness,
+  );
 
+  const q_d =
+    model.gammaDL * model.slab.thickness * 0.025 + model.gammaLL * model.q_k;
   const rightGroundPressure = computeGroundPressure(
     model.groundRight,
     model.materials,
     model.slab.angle,
-    model.liveLoad,
+    q_d,
+  );
+  const rightGroundPressureAtFoundation = getPressureValue(
+    groundRight,
+    rightGroundPressure.activePressure,
+    model.foundation.thickness,
   );
 
   const slab = new THREE.BoxGeometry(
@@ -324,6 +336,42 @@ function Scene() {
         radius={200}
         onChange={setSlabAngle}
       />
+      <AreaLoad
+        polygon={[
+          {
+            x: 500,
+            y: model.wall.thickness / 2,
+            z: groundRight[groundRight.length - 1].top + model.slab.thickness,
+            value: model.q_k,
+          },
+          {
+            x: 500,
+            y: model.wall.thickness / 2 + rightGroundWidth,
+            z:
+              groundRight[groundRight.length - 1].top +
+              model.slab.thickness +
+              tanAlpha * rightGroundWidth,
+            value: model.q_k,
+          },
+          {
+            x: -500,
+            y: model.wall.thickness / 2 + rightGroundWidth,
+            z:
+              groundRight[groundRight.length - 1].top +
+              model.slab.thickness +
+              tanAlpha * rightGroundWidth,
+            value: model.q_k,
+          },
+          {
+            x: -500,
+            y: model.wall.thickness / 2,
+            z: groundRight[groundRight.length - 1].top + model.slab.thickness,
+            value: model.q_k,
+          },
+        ]}
+        normal={{ x: 0, y: 0, z: 1 }}
+        onChange={setLiveLoad}
+      />
       {/* Ground left */}
       {groundLeft.map((ground, index) => (
         <React.Fragment key={index}>
@@ -380,7 +428,7 @@ function Scene() {
                 },
               ]}
               normal={{ x: 0, y: -1, z: 0 }}
-              color="lightblue"
+              color="orange"
             />
           ) : ground.bottom < model.foundation.thickness &&
             ground.top > model.foundation.thickness ? (
@@ -403,25 +451,17 @@ function Scene() {
                     x: -500,
                     y: -model.wall.thickness / 2 - model.foundation.left,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundLeft,
-                      leftGroundPressure.passivePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: leftGroundPressureAtFoundation,
                   },
                   {
                     x: 500,
                     y: -model.wall.thickness / 2 - model.foundation.left,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundLeft,
-                      leftGroundPressure.passivePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: leftGroundPressureAtFoundation,
                   },
                 ]}
                 normal={{ x: 0, y: -1, z: 0 }}
-                color="lightblue"
+                color="orange"
               />
               <AreaLoad
                 polygon={[
@@ -429,21 +469,13 @@ function Scene() {
                     x: 500,
                     y: -model.wall.thickness / 2,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundLeft,
-                      leftGroundPressure.passivePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: leftGroundPressureAtFoundation,
                   },
                   {
                     x: -500,
                     y: -model.wall.thickness / 2,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundLeft,
-                      leftGroundPressure.passivePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: leftGroundPressureAtFoundation,
                   },
                   {
                     x: -500,
@@ -459,7 +491,7 @@ function Scene() {
                   },
                 ]}
                 normal={{ x: 0, y: -1, z: 0 }}
-                color="lightblue"
+                color="orange"
               />
               <AreaLoad
                 polygon={[
@@ -467,41 +499,25 @@ function Scene() {
                     x: 500,
                     y: -model.wall.thickness / 2,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundLeft,
-                      leftGroundPressure.passivePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: 1,
                   },
                   {
                     x: -500,
                     y: -model.wall.thickness / 2,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundLeft,
-                      leftGroundPressure.passivePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: 1,
                   },
                   {
                     x: -500,
                     y: -model.wall.thickness / 2 - model.foundation.left,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundLeft,
-                      leftGroundPressure.passivePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: 1,
                   },
                   {
                     x: 500,
                     y: -model.wall.thickness / 2 - model.foundation.left,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundLeft,
-                      leftGroundPressure.passivePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: 1,
                   },
                 ]}
                 normal={{ x: 0, y: 0, z: 1 }}
@@ -537,7 +553,7 @@ function Scene() {
                 },
               ]}
               normal={{ x: 0, y: -1, z: 0 }}
-              color="lightblue"
+              color="orange"
             />
           )}
         </React.Fragment>
@@ -621,21 +637,13 @@ function Scene() {
                     x: -500,
                     y: model.wall.thickness / 2 + model.foundation.right,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundRight,
-                      rightGroundPressure.activePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: rightGroundPressureAtFoundation,
                   },
                   {
                     x: 500,
                     y: model.wall.thickness / 2 + model.foundation.right,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundRight,
-                      rightGroundPressure.activePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: rightGroundPressureAtFoundation,
                   },
                 ]}
                 normal={{ x: 0, y: 1, z: 0 }}
@@ -647,21 +655,13 @@ function Scene() {
                     x: 500,
                     y: model.wall.thickness / 2,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundRight,
-                      rightGroundPressure.activePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: rightGroundPressureAtFoundation,
                   },
                   {
                     x: -500,
                     y: model.wall.thickness / 2,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundRight,
-                      rightGroundPressure.activePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: rightGroundPressureAtFoundation,
                   },
                   {
                     x: -500,
@@ -685,41 +685,25 @@ function Scene() {
                     x: 500,
                     y: model.wall.thickness / 2,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundLeft,
-                      rightGroundPressure.activePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: 1,
                   },
                   {
                     x: -500,
                     y: model.wall.thickness / 2,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundLeft,
-                      rightGroundPressure.activePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: 1,
                   },
                   {
                     x: -500,
                     y: model.wall.thickness / 2 + model.foundation.right,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundLeft,
-                      rightGroundPressure.activePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: 1,
                   },
                   {
                     x: 500,
                     y: model.wall.thickness / 2 + model.foundation.right,
                     z: model.foundation.thickness,
-                    value: getPressureValue(
-                      groundLeft,
-                      rightGroundPressure.activePressure,
-                      model.foundation.thickness,
-                    ),
+                    value: 1,
                   },
                 ]}
                 normal={{ x: 0, y: 0, z: 1 }}
@@ -760,43 +744,6 @@ function Scene() {
           )}
         </React.Fragment>
       ))}
-      {/* Live load */}
-      <AreaLoad
-        polygon={[
-          {
-            x: 500,
-            y: model.wall.thickness / 2,
-            z: groundRight[groundRight.length - 1].top + model.slab.thickness,
-            value: model.liveLoad,
-          },
-          {
-            x: 500,
-            y: model.wall.thickness / 2 + rightGroundWidth,
-            z:
-              groundRight[groundRight.length - 1].top +
-              model.slab.thickness +
-              tanAlpha * rightGroundWidth,
-            value: model.liveLoad,
-          },
-          {
-            x: -500,
-            y: model.wall.thickness / 2 + rightGroundWidth,
-            z:
-              groundRight[groundRight.length - 1].top +
-              model.slab.thickness +
-              tanAlpha * rightGroundWidth,
-            value: model.liveLoad,
-          },
-          {
-            x: -500,
-            y: model.wall.thickness / 2,
-            z: groundRight[groundRight.length - 1].top + model.slab.thickness,
-            value: model.liveLoad,
-          },
-        ]}
-        normal={{ x: 0, y: 0, z: 1 }}
-        onChange={setLiveLoad}
-      />
     </group>
   );
 }

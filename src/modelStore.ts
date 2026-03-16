@@ -1,13 +1,12 @@
 import { create } from "zustand";
-import type { GroundMaterial, Model } from "./types";
+import { type GroundMaterial, Model } from "./types";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { searchParamsStorage } from "./searchParams";
 
 const emptyModel: Model = {
-  project: "New project",
-  part: "",
+  name: "Untitled model",
   author: "",
-  date: new Date().getUTCDate().toString(),
+  date: new Date().toLocaleDateString(),
   wall: {
     height: 3000,
     thickness: 300,
@@ -25,9 +24,20 @@ const emptyModel: Model = {
     {
       id: "bacf7a0a-c6af-428e-b946-5c7809b51dab",
       name: "Sand",
+      weight: 17,
+      phi: 33,
+    },
+    {
+      id: "c59ae8f4-b521-4b59-86fc-d19502fd7c2f",
+      name: "Gravel",
       weight: 18,
       phi: 35,
-      alpha: 0,
+    },
+    {
+      id: "f667a90a-0276-4c37-bc6a-52a663c3ca74",
+      name: "Moraine",
+      weight: 20,
+      phi: 38,
     },
   ],
   groundLeft: [
@@ -50,13 +60,35 @@ const emptyModel: Model = {
   gammaLL: 1.5,
   gammaGdst: 1.1,
   gammaGstb: 0.9,
-  liveLoad: 5,
+  q_k: 5,
 };
 
 export const useModel = create<Model>()(
   persist(() => emptyModel, {
     name: "model",
     storage: createJSONStorage(() => searchParamsStorage),
+    merge(persistedState, currentState) {
+      if (!persistedState) {
+        return {
+          ...currentState,
+        };
+      }
+      const result = Model.safeParse(persistedState);
+      if (!result.success) {
+        console.warn("Failed to parse persisted model, using empty model", {
+          error: result.error,
+          persistedState,
+        });
+        return {
+          ...currentState,
+          ...emptyModel,
+        };
+      }
+      return {
+        ...currentState,
+        ...result.data,
+      };
+    },
   }),
 );
 
@@ -151,7 +183,7 @@ export const setSlabAngle = (angle: number) => {
 export const setLiveLoad = (liveLoad: number) => {
   useModel.setState((state) => ({
     ...state,
-    liveLoad,
+    q_k: liveLoad,
   }));
 };
 

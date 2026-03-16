@@ -1,14 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Download, Monitor, Moon, Printer, Sun, Upload } from "lucide-react";
-import { generateReport } from "@/reports";
-import { useModel } from "@/modelStore";
+import { Download, Monitor, Moon, Sun, Upload } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
 import { useTheme } from "@/components/theme-provider";
 
 export function Menu() {
   const { theme, setTheme } = useTheme();
-  const model = useModel();
 
   const handleOpen = () => {
     toast.error("Not implemented yet");
@@ -16,10 +13,6 @@ export function Menu() {
 
   const handleSave = () => {
     toast.error("Not implemented yet");
-  };
-
-  const handlePrint = () => {
-    generateReport(model);
   };
 
   return (
@@ -32,11 +25,8 @@ export function Menu() {
         <Download />
         Save
       </Button>
-      <Button variant="outline" onClick={handlePrint}>
-        <Printer />
-        Print
-      </Button>
       <ToggleGroup
+        size="sm"
         type="single"
         variant="outline"
         value={theme}
@@ -47,7 +37,6 @@ export function Menu() {
       >
         <ToggleGroupItem
           value="light"
-          size="sm"
           aria-label="Toggle light theme"
           title="Light theme"
         >
@@ -55,7 +44,6 @@ export function Menu() {
         </ToggleGroupItem>
         <ToggleGroupItem
           value="dark"
-          size="sm"
           aria-label="Toggle dark theme"
           title="Dark theme"
         >
@@ -63,7 +51,6 @@ export function Menu() {
         </ToggleGroupItem>
         <ToggleGroupItem
           value="system"
-          size="sm"
           aria-label="Toggle system theme"
           title="System theme"
         >

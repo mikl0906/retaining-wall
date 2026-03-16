@@ -5,7 +5,6 @@ const GroundMaterial = z.object({
   name: z.string(),
   weight: z.number(), // kN/m³
   phi: z.number(), // angle of internal friction in degrees
-  alpha: z.number(), // degrees
 });
 export type GroundMaterial = z.infer<typeof GroundMaterial>;
 
@@ -15,9 +14,8 @@ const GroundLayer = z.object({
 });
 export type GroundLayer = z.infer<typeof GroundLayer>;
 
-const Model = z.object({
-  project: z.string().default("Untitled project"),
-  part: z.string().default(""),
+export const Model = z.object({
+  name: z.string().default("Untitled model"),
   author: z.string().default(""),
   date: z.string().default(() => new Date().toISOString()),
   // Geometry
@@ -39,7 +37,7 @@ const Model = z.object({
   gammaLL: z.number(), // Partial factor for live load
   gammaGdst: z.number(), // Partial factor for destabilizing load
   gammaGstb: z.number(), // Partial factor for stabilizing load
-  liveLoad: z.number(), // Live load in kN/m²
+  q_k: z.number(), // Live load in kN/m²
   // Library
   materials: z.array(GroundMaterial),
   // Ground layers
