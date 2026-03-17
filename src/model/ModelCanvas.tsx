@@ -20,9 +20,12 @@ import { AngleDimension } from "./AngleDimension";
 import React from "react";
 import { MaterialSelect } from "./MaterialSelect";
 import { AreaLoad } from "./AreaLoad";
-import { computeGroundPressure } from "@/groundPressure";
+import {
+  computeGroundPressure,
+  computeGroundWeightAtLevel,
+} from "@/groundPressure";
 import type { Pressure } from "@/types";
-import { DragControls } from "./DragControls";
+import { HoverName } from "./HoverName";
 
 // Z direction is up (common for engineering)
 // World length unit is 1 mm (common for engineering)
@@ -44,7 +47,23 @@ const soilMaterial = new THREE.MeshStandardMaterial({
 
 export function ModelCanvas() {
   return (
-    <Canvas>
+    <Canvas
+      gl={{
+        antialias: true,
+      }}
+      raycaster={{
+        params: {
+          Mesh: {},
+          Line: { threshold: 100 },
+          Line2: { threshold: 30 },
+          LOD: {},
+          Points: {
+            threshold: 100,
+          },
+          Sprite: {},
+        },
+      }}
+    >
       <ambientLight />
       <directionalLight position={[3, 0, 10]} />
       <PerspectiveCamera
@@ -200,6 +219,16 @@ function Scene() {
     model.foundation.thickness,
   );
 
+  const leftGroundWeightAtFoundation = computeGroundWeightAtLevel(
+    model.groundLeft,
+    model.materials,
+    model.foundation.thickness,
+  );
+  const rightGroundWeightAtFoundation = computeGroundWeightAtLevel(
+    model.groundRight,
+    model.materials,
+    model.foundation.thickness,
+  );
   const slab = new THREE.BoxGeometry(
     1000,
     rightGroundWidth,
@@ -218,13 +247,15 @@ function Scene() {
   return (
     <group position={[0, 0, -totalHeight / 2]}>
       {/* Wall */}
-      <mesh
-        position={[0, 0, totalHeight / 2 + model.foundation.thickness / 2]}
-        material={concreteMaterial}
-      >
-        <boxGeometry args={[1000, model.wall.thickness, model.wall.height]} />
-        <Edges color="gray" />
-      </mesh>
+      <HoverName name="Wall" offset={[500, 0, 0]}>
+        <mesh
+          position={[0, 0, totalHeight / 2 + model.foundation.thickness / 2]}
+          material={concreteMaterial}
+        >
+          <boxGeometry args={[1000, model.wall.thickness, model.wall.height]} />
+          <Edges color="gray" />
+        </mesh>
+      </HoverName>
       <LineDimension
         start={
           new THREE.Vector3(
@@ -250,9 +281,11 @@ function Scene() {
         onChange={setWallThickness}
       />
       {/* Foundation */}
-      <mesh geometry={foundation} material={concreteMaterial}>
-        <Edges color="gray" />
-      </mesh>
+      <HoverName name="Foundation" offset={[500, 0, 0]}>
+        <mesh geometry={foundation} material={concreteMaterial}>
+          <Edges color="gray" />
+        </mesh>
+      </HoverName>
       <LineDimension
         start={
           new THREE.Vector3(
@@ -299,13 +332,15 @@ function Scene() {
         onChange={setFoundationRight}
       />
       {/* Ground Slab */}
-      <mesh
-        geometry={slab}
-        material={concreteMaterial}
-        visible={model.slab.thickness > 0}
-      >
-        <Edges color="gray" />
-      </mesh>
+      <HoverName name="Slab" offset={[500, 0, 0]}>
+        <mesh
+          geometry={slab}
+          material={concreteMaterial}
+          visible={model.slab.thickness > 0}
+        >
+          <Edges color="gray" />
+        </mesh>
+      </HoverName>
       <LineDimension
         start={
           new THREE.Vector3(
@@ -376,6 +411,7 @@ function Scene() {
         ]}
         normal={{ x: 0, y: 0, z: 1 }}
         onChange={setLiveLoad}
+        alwaysShowValue
       />
       {/* Ground left */}
       {groundLeft.map((ground, index) => (
@@ -504,25 +540,25 @@ function Scene() {
                     x: 500,
                     y: -model.wall.thickness / 2,
                     z: model.foundation.thickness,
-                    value: 1,
+                    value: leftGroundWeightAtFoundation,
                   },
                   {
                     x: -500,
                     y: -model.wall.thickness / 2,
                     z: model.foundation.thickness,
-                    value: 1,
+                    value: leftGroundWeightAtFoundation,
                   },
                   {
                     x: -500,
                     y: -model.wall.thickness / 2 - model.foundation.left,
                     z: model.foundation.thickness,
-                    value: 1,
+                    value: leftGroundWeightAtFoundation,
                   },
                   {
                     x: 500,
                     y: -model.wall.thickness / 2 - model.foundation.left,
                     z: model.foundation.thickness,
-                    value: 1,
+                    value: leftGroundWeightAtFoundation,
                   },
                 ]}
                 normal={{ x: 0, y: 0, z: 1 }}
@@ -690,25 +726,25 @@ function Scene() {
                     x: 500,
                     y: model.wall.thickness / 2,
                     z: model.foundation.thickness,
-                    value: 1,
+                    value: rightGroundWeightAtFoundation,
                   },
                   {
                     x: -500,
                     y: model.wall.thickness / 2,
                     z: model.foundation.thickness,
-                    value: 1,
+                    value: rightGroundWeightAtFoundation,
                   },
                   {
                     x: -500,
                     y: model.wall.thickness / 2 + model.foundation.right,
                     z: model.foundation.thickness,
-                    value: 1,
+                    value: rightGroundWeightAtFoundation,
                   },
                   {
                     x: 500,
                     y: model.wall.thickness / 2 + model.foundation.right,
                     z: model.foundation.thickness,
-                    value: 1,
+                    value: rightGroundWeightAtFoundation,
                   },
                 ]}
                 normal={{ x: 0, y: 0, z: 1 }}
@@ -749,12 +785,6 @@ function Scene() {
           )}
         </React.Fragment>
       ))}
-      <DragControls axisDrag="x">
-        <mesh position={[1000, 0, 0]}>
-          <sphereGeometry args={[100]} />
-          <meshBasicMaterial color="white" transparent opacity={0.2} />
-        </mesh>
-      </DragControls>
     </group>
   );
 }

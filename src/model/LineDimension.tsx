@@ -77,8 +77,8 @@ export function LineDimension({
             material={leftConeHovered ? coneHighlightMaterial : coneMaterial}
           />
           <mesh position={[-length / 2 + 50, 0, 0]}>
-            <sphereGeometry args={[60]} />
-            <meshBasicMaterial color="white" transparent opacity={0.2} />
+            <sphereGeometry args={[70]} />
+            <meshBasicMaterial color="white" transparent opacity={0} />
           </mesh>
         </DragControls>
         <DragControls
@@ -92,8 +92,8 @@ export function LineDimension({
             material={rightConeHovered ? coneHighlightMaterial : coneMaterial}
           />
           <mesh position={[length / 2 - 50, 0, 0]}>
-            <sphereGeometry args={[60]} />
-            <meshBasicMaterial color="white" transparent opacity={0.2} />
+            <sphereGeometry args={[70]} />
+            <meshBasicMaterial color="white" transparent opacity={0} />
           </mesh>
         </DragControls>
       </group>

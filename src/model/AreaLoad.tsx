@@ -1,14 +1,17 @@
 import * as THREE from "three";
 import { Instance, Instances, Line } from "@react-three/drei";
 import { NumberInput } from "./NumberInput";
+import React from "react";
 
 const arrowMinLength = 80;
-const arrowScale = 30;
+const arrowScale = 10;
 const arrowSpacing = 300;
 
 const coneGeometry = new THREE.ConeGeometry(20, 80, 12);
 coneGeometry.translate(0, -40, 0);
 coneGeometry.rotateX(-Math.PI / 2);
+
+const highlightColor = "white";
 
 interface AreaLoadProps {
   polygon: {
@@ -23,6 +26,7 @@ interface AreaLoadProps {
     z: number;
   };
   color?: string;
+  alwaysShowValue?: boolean;
   onChange?: (value: number) => void;
 }
 
@@ -30,8 +34,11 @@ export function AreaLoad({
   polygon,
   normal,
   color = "green",
+  alwaysShowValue = false,
   onChange,
 }: AreaLoadProps) {
+  const [hovered, setHovered] = React.useState(false);
+
   if (polygon.length < 3) return null;
 
   const origin = new THREE.Vector3().copy(polygon[0]);
@@ -107,21 +114,38 @@ export function AreaLoad({
       : `${maxValue.toFixed(1)}`;
 
   return (
-    <group position={origin} rotation={rotation}>
+    <group
+      position={origin}
+      rotation={rotation}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setHovered(true);
+      }}
+      onPointerOut={(e) => {
+        e.stopPropagation();
+        setHovered(false);
+      }}
+    >
       <Instances geometry={coneGeometry} count={arrows.length}>
-        <meshStandardMaterial color={color} />
+        <meshStandardMaterial color={hovered ? highlightColor : color} />
         {arrows.map((arrow, i) => (
           <Instance key={i} position={arrow.position} />
         ))}
       </Instances>
-      <Line points={arrowLines} color={color} segments />
-      <Line points={topPolygon} color={color} />
-      <NumberInput
-        position={topPolygonAverage}
-        value={value}
-        unit="kN/m²"
-        onChange={onChange}
+      <Line
+        points={arrowLines}
+        color={hovered ? highlightColor : color}
+        segments
       />
+      <Line points={topPolygon} color={hovered ? highlightColor : color} />
+      {(alwaysShowValue || hovered) && (
+        <NumberInput
+          position={topPolygonAverage}
+          value={value}
+          unit="kN/m²"
+          onChange={onChange}
+        />
+      )}
     </group>
   );
 }

@@ -15,9 +15,12 @@ const GroundLayer = z.object({
 export type GroundLayer = z.infer<typeof GroundLayer>;
 
 export const Model = z.object({
+  // Metadata
   name: z.string().default("Untitled model"),
   author: z.string().default(""),
   date: z.string().default(() => new Date().toISOString()),
+  // Library
+  materials: z.array(GroundMaterial),
   // Geometry
   wall: z.object({
     height: z.number(), // in mm
@@ -32,17 +35,13 @@ export const Model = z.object({
     thickness: z.number(), // in mm
     angle: z.number(), // in degrees, positive means sloping upwards to the right
   }),
-  // Loads
-  // gammaDL: z.number(), // Partial factor for dead load
-  // gammaLL: z.number(), // Partial factor for live load
-  gammaGdst: z.number(), // Partial factor for destabilizing load
-  gammaGstb: z.number(), // Partial factor for stabilizing load
-  q_k: z.number(), // Live load in kN/m²
-  // Library
-  materials: z.array(GroundMaterial),
-  // Ground layers
   groundLeft: z.array(GroundLayer),
   groundRight: z.array(GroundLayer),
+  // Partial factors
+  gammaGdst: z.number(), // Partial factor for destabilizing load
+  gammaGstb: z.number(), // Partial factor for stabilizing load
+  // Loads
+  q_k: z.number(), // Live load in kN/m²
 });
 export type Model = z.infer<typeof Model>;
 

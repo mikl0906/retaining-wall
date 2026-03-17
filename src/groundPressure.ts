@@ -74,6 +74,33 @@ const getKa = (phi: number, alpha: number, betta: number) => {
   );
 };
 
+export const computeGroundWeightAtLevel = (
+  layers: GroundLayer[],
+  materials: GroundMaterial[],
+  z: number,
+) => {
+  let weight = 0;
+  let height = 0;
+  for (const layer of layers) {
+    if (height + layer.thickness < z) {
+      height += layer.thickness;
+      continue;
+    }
+
+    const t = height > z ? layer.thickness : layer.thickness - (z - height);
+    height += layer.thickness;
+
+    const material = materials.find((m) => m.id === layer.materialId);
+    if (!material) {
+      console.warn(`Material with id ${layer.materialId} not found`);
+      continue;
+    }
+
+    weight += (t / 1000) * material.weight;
+  }
+  return weight;
+};
+
 // const testMaterials: GroundMaterial[] = [
 //   {
 //     id: "1",
