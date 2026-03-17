@@ -103,7 +103,7 @@ export function AreaLoad({
   const maxValue = Math.max(...polygon.map((p) => p.value));
   const value =
     maxValue - minValue > 0.1
-      ? `${minValue.toFixed(1)}...${maxValue.toFixed(1)}`
+      ? `${minValue.toFixed(1)} - ${maxValue.toFixed(1)}`
       : `${maxValue.toFixed(1)}`;
 
   return (

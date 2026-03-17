@@ -22,6 +22,7 @@ import { MaterialSelect } from "./MaterialSelect";
 import { AreaLoad } from "./AreaLoad";
 import { computeGroundPressure } from "@/groundPressure";
 import type { Pressure } from "@/types";
+import { DragControls } from "./DragControls";
 
 // Z direction is up (common for engineering)
 // World length unit is 1 mm (common for engineering)
@@ -330,7 +331,7 @@ function Scene() {
       <AngleDimension
         vertex={
           new THREE.Vector3(
-            dimPlane,
+            dimPlane + 10,
             model.wall.thickness / 2 + rightGroundWidth / 2,
             groundRight[groundRight.length - 1].top,
           )
@@ -748,6 +749,12 @@ function Scene() {
           )}
         </React.Fragment>
       ))}
+      <DragControls axisDrag="x">
+        <mesh position={[1000, 0, 0]}>
+          <sphereGeometry args={[100]} />
+          <meshBasicMaterial color="white" transparent opacity={0.2} />
+        </mesh>
+      </DragControls>
     </group>
   );
 }

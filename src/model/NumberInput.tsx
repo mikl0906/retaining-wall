@@ -64,7 +64,7 @@ export function NumberInput({
           className={`px-2 rounded-md border text-nowrap ${onChange ? "cursor-pointer bg-background/60" : "bg-background/20"}`}
           onClick={onChange ? startEditing : undefined}
         >
-          {value} {unit}
+          {value} <span className="opacity-60">{unit}</span>
         </div>
       )}
     </Html>

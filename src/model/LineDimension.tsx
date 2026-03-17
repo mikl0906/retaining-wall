@@ -1,5 +1,7 @@
+import React from "react";
 import * as THREE from "three";
 import { NumberInput } from "./NumberInput";
+import { DragControls } from "@react-three/drei";
 
 const dimLine = new THREE.BufferGeometry().setFromPoints([
   new THREE.Vector3(-0.5, -1, 0),
@@ -10,15 +12,20 @@ const dimLine = new THREE.BufferGeometry().setFromPoints([
   new THREE.Vector3(0.5, -1, 0),
 ]);
 
-const coneLeft = new THREE.ConeGeometry(20, 100, 12);
+const coneLeft = new THREE.ConeGeometry(20, 80, 12);
 coneLeft.rotateZ(Math.PI / 2);
-coneLeft.translate(50, 0, 0);
+coneLeft.translate(40, 0, 0);
 
 const coneRight = coneLeft.clone();
 coneRight.rotateZ(Math.PI);
 
 const coneMaterial = new THREE.MeshBasicMaterial({
   color: "magenta",
+  side: THREE.DoubleSide,
+});
+
+const coneHighlightMaterial = new THREE.MeshBasicMaterial({
+  color: "white",
   side: THREE.DoubleSide,
 });
 
@@ -37,6 +44,9 @@ export function LineDimension({
   offset,
   onChange,
 }: DimensionLineProps) {
+  const [leftConeHovered, setLeftConeHovered] = React.useState(false);
+  const [rightConeHovered, setRightConeHovered] = React.useState(false);
+
   const center = new THREE.Vector3()
     .addVectors(start, end)
     .multiplyScalar(0.5)
@@ -47,9 +57,8 @@ export function LineDimension({
   const zAxis = new THREE.Vector3().crossVectors(xAxis, up).normalize();
   const yAxis = new THREE.Vector3().crossVectors(zAxis, xAxis).normalize();
 
-  const euler = new THREE.Euler().setFromRotationMatrix(
-    new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis),
-  );
+  const matrix = new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis);
+  const euler = new THREE.Euler().setFromRotationMatrix(matrix);
 
   return (
     <>
@@ -57,16 +66,34 @@ export function LineDimension({
         <lineSegments geometry={dimLine} scale={[length, offset, 1]}>
           <lineBasicMaterial color="magenta" />
         </lineSegments>
-        <mesh
-          geometry={coneLeft}
-          position={[-length / 2, 0, 0]}
-          material={coneMaterial}
-        />
+        <DragControls
+          autoTransform
+          onHover={(hovered) => setLeftConeHovered(hovered)}
+          axisLock="x"
+        >
+          <mesh
+            geometry={coneLeft}
+            position={[-length / 2, 0, 0]}
+            material={leftConeHovered ? coneHighlightMaterial : coneMaterial}
+          />
+          <mesh position={[-length / 2 + 50, 0, 0]}>
+            <sphereGeometry args={[60]} />
+            <meshBasicMaterial color="white" transparent opacity={0.2} />
+          </mesh>
+        </DragControls>
         <mesh
           geometry={coneRight}
           position={[length / 2, 0, 0]}
-          material={coneMaterial}
+          material={rightConeHovered ? coneHighlightMaterial : coneMaterial}
         />
+        <mesh
+          position={[length / 2 - 50, 0, 0]}
+          onPointerOver={() => setRightConeHovered(true)}
+          onPointerOut={() => setRightConeHovered(false)}
+        >
+          <sphereGeometry args={[60]} />
+          <meshBasicMaterial color="white" transparent opacity={0.2} />
+        </mesh>
       </group>
       <NumberInput
         position={center}
