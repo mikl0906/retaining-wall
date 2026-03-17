@@ -1,7 +1,7 @@
 import React from "react";
 import * as THREE from "three";
 import { NumberInput } from "./NumberInput";
-import { DragControls } from "@react-three/drei";
+import { DragControls } from "./DragControls";
 
 const dimLine = new THREE.BufferGeometry().setFromPoints([
   new THREE.Vector3(-0.5, -1, 0),
@@ -69,7 +69,7 @@ export function LineDimension({
         <DragControls
           autoTransform
           onHover={(hovered) => setLeftConeHovered(hovered)}
-          axisLock="x"
+          axisDrag="x"
         >
           <mesh
             geometry={coneLeft}
@@ -81,19 +81,21 @@ export function LineDimension({
             <meshBasicMaterial color="white" transparent opacity={0.2} />
           </mesh>
         </DragControls>
-        <mesh
-          geometry={coneRight}
-          position={[length / 2, 0, 0]}
-          material={rightConeHovered ? coneHighlightMaterial : coneMaterial}
-        />
-        <mesh
-          position={[length / 2 - 50, 0, 0]}
-          onPointerOver={() => setRightConeHovered(true)}
-          onPointerOut={() => setRightConeHovered(false)}
+        <DragControls
+          autoTransform
+          onHover={(hovered) => setRightConeHovered(hovered)}
+          axisDrag="x"
         >
-          <sphereGeometry args={[60]} />
-          <meshBasicMaterial color="white" transparent opacity={0.2} />
-        </mesh>
+          <mesh
+            geometry={coneRight}
+            position={[length / 2, 0, 0]}
+            material={rightConeHovered ? coneHighlightMaterial : coneMaterial}
+          />
+          <mesh position={[length / 2 - 50, 0, 0]}>
+            <sphereGeometry args={[60]} />
+            <meshBasicMaterial color="white" transparent opacity={0.2} />
+          </mesh>
+        </DragControls>
       </group>
       <NumberInput
         position={center}
