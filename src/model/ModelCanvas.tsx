@@ -48,21 +48,23 @@ const soilMaterial = new THREE.MeshStandardMaterial({
 export function ModelCanvas() {
   return (
     <Canvas
+      frameloop="demand"
       gl={{
         antialias: true,
       }}
       raycaster={{
         params: {
           Mesh: {},
-          Line: { threshold: 100 },
-          Line2: { threshold: 30 },
+          Line: { threshold: 20 },
+          Line2: { threshold: 50 },
           LOD: {},
           Points: {
-            threshold: 100,
+            threshold: 20,
           },
           Sprite: {},
         },
       }}
+      fallback={<div>3D rendering is not supported by your browser.</div>}
     >
       <ambientLight />
       <directionalLight position={[3, 0, 10]} />
@@ -245,7 +247,13 @@ function Scene() {
   slab.applyMatrix4(slabMatrix);
 
   return (
-    <group position={[0, 0, -totalHeight / 2]}>
+    <group
+      position={[
+        0,
+        (model.foundation.left - model.foundation.right) / 2,
+        -totalHeight / 2,
+      ]}
+    >
       {/* Wall */}
       <HoverName name="Wall" offset={[500, 0, 0]}>
         <mesh

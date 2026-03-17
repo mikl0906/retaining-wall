@@ -63,8 +63,8 @@ export function HoverName({
     >
       <group ref={measuredChildrenRef}>{children}</group>
       {hovered && (
-        <Html position={labelPosition} center>
-          <div className="px-2 bg-background/50 rounded-md border">{name}</div>
+        <Html position={labelPosition} center className="pointer-events-none">
+          <div className="px-2 bg-background/80 rounded-md border">{name}</div>
         </Html>
       )}
     </group>

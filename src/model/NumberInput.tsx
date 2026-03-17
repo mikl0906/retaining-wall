@@ -46,7 +46,11 @@ export function NumberInput({
   }
 
   return (
-    <Html position={position} center>
+    <Html
+      position={position}
+      center
+      className={`${onChange ? "" : "pointer-events-none"}`}
+    >
       {editing ? (
         <input
           ref={inputRef}
@@ -61,7 +65,7 @@ export function NumberInput({
         />
       ) : (
         <div
-          className={`px-2 rounded-md border text-nowrap ${onChange ? "cursor-pointer bg-background/60" : "bg-background/20"}`}
+          className={`px-2 rounded-md border text-nowrap ${onChange ? "cursor-pointer bg-background/80" : "bg-background/30"}`}
           onClick={onChange ? startEditing : undefined}
         >
           {value} <span className="opacity-60">{unit}</span>

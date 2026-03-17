@@ -12,8 +12,7 @@
 
   <body style="font-family: Arial, sans-serif;">
     <h1>Retaining Wall Calculation Report</h1>
-    <p>Project: <%=it.model.project%></p>
-    <p>Part: <%=it.model.part%></p>
+    <p>Name: <%=it.model.name%></p>
     <p>Author: <%=it.model.author%></p>
     <p>Date: <%=it.model.date%></p>
 
@@ -54,5 +53,10 @@
     </table>
 
     <h2>Results</h2>
+
+    <h3>Stability</h3>
+    <h3>Overturn</h3>
+    <h3>Sliding</h3>
+    <h3>TODO: Finish this</h3>
   </body>
 </html>

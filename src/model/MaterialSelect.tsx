@@ -22,7 +22,7 @@ export function MaterialSelect({
         onChange={(e) =>
           onChange(options.find((option) => option.id === e.target.value)!)
         }
-        className="px-2 bg-background/50 rounded-md border"
+        className="px-2 bg-background/80 rounded-md border"
       >
         {options.map((option) => (
           <option key={option.id} value={option.id}>

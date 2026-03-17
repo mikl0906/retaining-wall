@@ -18,6 +18,9 @@ import { ReportPreview } from "./ui/ReportPreview";
 import { Button } from "./components/ui/button";
 import { Separator } from "./components/ui/separator";
 import { ModelInfoCard } from "./ui/ModelInfoCard";
+import { Printer } from "lucide-react";
+import { useModel } from "./modelStore";
+import { generateReport } from "./reports";
 
 export function App() {
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -32,6 +35,11 @@ export function App() {
 
 function DesktopApp() {
   const [reportOpen, setReportOpen] = useState(false);
+  const model = useModel();
+
+  const handlePrint = () => {
+    generateReport(model);
+  };
 
   return (
     <div className="h-screen flex">
@@ -46,12 +54,16 @@ function DesktopApp() {
           <MaterialsCard />
           <ResultsCard />
         </div>
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 flex gap-2">
+          <Button variant="outline" onClick={handlePrint}>
+            <Printer />
+            Print Report
+          </Button>
           <Button
             variant="outline"
             onClick={() => setReportOpen((open) => !open)}
           >
-            {reportOpen ? "Close Report" : "Open Report"}
+            {reportOpen ? "Close Preview" : "Open Preview"}
           </Button>
         </div>
       </div>

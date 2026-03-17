@@ -19,11 +19,11 @@ export function Menu() {
     <div className="flex gap-2 min-w-0">
       <Button variant="outline" onClick={handleOpen}>
         <Upload />
-        Open
+        Open file
       </Button>
       <Button variant="outline" onClick={handleSave}>
         <Download />
-        Save
+        Save to file
       </Button>
       <ToggleGroup
         size="sm"
