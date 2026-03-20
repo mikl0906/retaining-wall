@@ -101,7 +101,7 @@ export function LineDimension({
         position={center}
         value={length}
         unit="mm"
-        onChange={onChange}
+        onValueChange={onChange}
       />
     </>
   );

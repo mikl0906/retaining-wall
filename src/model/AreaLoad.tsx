@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { Instance, Instances, Line } from "@react-three/drei";
 import { NumberInput } from "./NumberInput";
 import React from "react";
+import { Label } from "./Label";
 
 const arrowMinLength = 80;
 const arrowScale = 10;
@@ -34,7 +35,7 @@ export function AreaLoad({
   polygon,
   normal,
   color = "green",
-  alwaysShowValue = false,
+  alwaysShowValue = true,
   onChange,
 }: AreaLoadProps) {
   const [hovered, setHovered] = React.useState(false);
@@ -114,18 +115,7 @@ export function AreaLoad({
       : `${maxValue.toFixed(1)}`;
 
   return (
-    <group
-      position={origin}
-      rotation={rotation}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        setHovered(true);
-      }}
-      onPointerOut={(e) => {
-        e.stopPropagation();
-        setHovered(false);
-      }}
-    >
+    <group position={origin} rotation={rotation}>
       <Instances geometry={coneGeometry} count={arrows.length}>
         <meshStandardMaterial color={hovered ? highlightColor : color} />
         {arrows.map((arrow, i) => (
@@ -139,12 +129,31 @@ export function AreaLoad({
       />
       <Line points={topPolygon} color={hovered ? highlightColor : color} />
       {(alwaysShowValue || hovered) && (
-        <NumberInput
-          position={topPolygonAverage}
-          value={value}
-          unit="kN/m²"
-          onChange={onChange}
-        />
+        <>
+          {onChange ? (
+            <NumberInput
+              position={topPolygonAverage}
+              value={value}
+              unit="kN/m²"
+              onValueChange={onChange}
+            />
+          ) : (
+            <Label
+              position={topPolygonAverage}
+              text={value}
+              unit="kN/m²"
+              variant="secondary"
+              onPointerOver={(e) => {
+                e.stopPropagation();
+                setHovered(true);
+              }}
+              onPointerOut={(e) => {
+                e.stopPropagation();
+                setHovered(false);
+              }}
+            />
+          )}
+        </>
       )}
     </group>
   );

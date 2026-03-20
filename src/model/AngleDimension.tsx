@@ -126,7 +126,7 @@ export function AngleDimension({
         position={labelPos}
         value={angleDeg}
         unit="°"
-        onChange={onChange}
+        onValueChange={onChange}
       />
     </>
   );

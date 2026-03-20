@@ -2,18 +2,19 @@ import * as THREE from "three";
 import { Html } from "@react-three/drei";
 import { useRef, useState } from "react";
 
-interface NumberInputProps {
+interface NumberInputProps extends React.ComponentPropsWithoutRef<typeof Html> {
   position: THREE.Vector3;
   value: number | string;
   unit?: string;
-  onChange?: (value: number) => void;
+  onValueChange: (value: number) => void;
 }
 
 export function NumberInput({
   position,
   value,
   unit,
-  onChange,
+  onValueChange,
+  ...props
 }: NumberInputProps) {
   const [editing, setEditing] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -34,7 +35,7 @@ export function NumberInput({
       return;
     }
     setEditing(false);
-    onChange?.(num);
+    onValueChange?.(num);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -46,11 +47,7 @@ export function NumberInput({
   }
 
   return (
-    <Html
-      position={position}
-      center
-      className={`${onChange ? "" : "pointer-events-none"}`}
-    >
+    <Html position={position} center {...props}>
       {editing ? (
         <input
           ref={inputRef}
@@ -65,8 +62,8 @@ export function NumberInput({
         />
       ) : (
         <div
-          className={`px-2 rounded-md border text-nowrap ${onChange ? "cursor-pointer bg-background/80" : "bg-background/30"}`}
-          onClick={onChange ? startEditing : undefined}
+          className="px-2 rounded-md border text-nowrap cursor-pointer bg-background/80"
+          onClick={startEditing}
         >
           {value} <span className="opacity-60">{unit}</span>
         </div>

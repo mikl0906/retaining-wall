@@ -1,6 +1,6 @@
-import { Html } from "@react-three/drei";
 import React from "react";
 import * as THREE from "three";
+import { Label } from "./Label";
 
 export function HoverName({
   name,
@@ -63,9 +63,12 @@ export function HoverName({
     >
       <group ref={measuredChildrenRef}>{children}</group>
       {hovered && (
-        <Html position={labelPosition} center className="pointer-events-none">
-          <div className="px-2 bg-background/80 rounded-md border">{name}</div>
-        </Html>
+        <Label
+          position={labelPosition}
+          text={name}
+          variant="primary"
+          className="pointer-events-none"
+        />
       )}
     </group>
   );
