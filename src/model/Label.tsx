@@ -1,3 +1,4 @@
+import React from "react";
 import * as THREE from "three";
 import { Html } from "@react-three/drei";
 
@@ -20,7 +21,8 @@ export function Label({
       <div
         className={`px-2 rounded-md border text-nowrap ${variant === "primary" ? "bg-background/80" : "bg-background/30"}`}
       >
-        {text} <span className="opacity-60">{unit}</span>
+        {text}
+        <span className="opacity-60"> {unit}</span>
       </div>
     </Html>
   );

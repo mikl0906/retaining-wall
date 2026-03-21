@@ -47,10 +47,39 @@ export const computeStabilizingMoment = (model: Model): number => {
   );
 };
 
+export const computePressureForce = (pressure: Pressure): number => {
+  return pressure.reduce((acc, p) => {
+    const b = p.bottom / 1000;
+    const t = p.top / 1000;
+    const h = t - b;
+    return acc + (b + (t - b) / 2) * h;
+  }, 0);
+};
+
 export const computePressureMoment = (
   layers: LayerGeometry,
   pressure: Pressure,
 ): number => {
-  // Implementation for computing destabilizing moment
-  return 0;
+  if (layers.length !== pressure.length) {
+    console.warn("Layers and pressure arrays must have the same length.");
+    return 1000000;
+  }
+
+  const moment = layers.reduce((acc, layer, index) => {
+    const b = layer.bottom / 1000;
+    const t = layer.top / 1000;
+    const h = t - b;
+
+    const pressureValue = pressure[index];
+    const p_b = pressureValue.bottom;
+    const p_t = pressureValue.top;
+
+    const p = p_b + ((p_t - p_b) * h) / 2;
+    const e =
+      ((p_b * h) / 2 + ((((p_t - p_b) * h) / 2) * h) / 3) /
+      (p_b + ((p_t - p_b) * h) / 2);
+    return acc + p * e;
+  }, 0);
+
+  return moment;
 };

@@ -28,6 +28,7 @@ interface AreaLoadProps {
   };
   color?: string;
   alwaysShowValue?: boolean;
+  title?: string;
   onChange?: (value: number) => void;
 }
 
@@ -36,6 +37,7 @@ export function AreaLoad({
   normal,
   color = "green",
   alwaysShowValue = true,
+  title,
   onChange,
 }: AreaLoadProps) {
   const [hovered, setHovered] = React.useState(false);
@@ -109,10 +111,13 @@ export function AreaLoad({
 
   const minValue = Math.min(...polygon.map((p) => p.value));
   const maxValue = Math.max(...polygon.map((p) => p.value));
-  const value =
+  let value =
     maxValue - minValue > 0.1
       ? `${minValue.toFixed(1)} - ${maxValue.toFixed(1)}`
       : `${maxValue.toFixed(1)}`;
+  if (title && hovered) {
+    value = `${title}: ${value}`;
+  }
 
   return (
     <group position={origin} rotation={rotation}>
@@ -143,14 +148,8 @@ export function AreaLoad({
               text={value}
               unit="kN/m²"
               variant="secondary"
-              onPointerOver={(e) => {
-                e.stopPropagation();
-                setHovered(true);
-              }}
-              onPointerOut={(e) => {
-                e.stopPropagation();
-                setHovered(false);
-              }}
+              onPointerOver={() => setHovered(true)}
+              onPointerOut={() => setHovered(false)}
             />
           )}
         </>

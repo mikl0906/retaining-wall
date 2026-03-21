@@ -6,6 +6,7 @@ interface NumberInputProps extends React.ComponentPropsWithoutRef<typeof Html> {
   position: THREE.Vector3;
   value: number | string;
   unit?: string;
+  title?: string;
   onValueChange: (value: number) => void;
 }
 
@@ -13,6 +14,7 @@ export function NumberInput({
   position,
   value,
   unit,
+  title,
   onValueChange,
   ...props
 }: NumberInputProps) {
@@ -64,6 +66,7 @@ export function NumberInput({
         <div
           className="px-2 rounded-md border text-nowrap cursor-pointer bg-background/80"
           onClick={startEditing}
+          title={title}
         >
           {value} <span className="opacity-60">{unit}</span>
         </div>

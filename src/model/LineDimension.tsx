@@ -34,6 +34,7 @@ interface DimensionLineProps {
   end: THREE.Vector3;
   up: THREE.Vector3;
   offset: number;
+  title?: string;
   onChange: (value: number) => void;
 }
 
@@ -42,6 +43,7 @@ export function LineDimension({
   end,
   up,
   offset,
+  title,
   onChange,
 }: DimensionLineProps) {
   const [leftConeHovered, setLeftConeHovered] = React.useState(false);
@@ -102,6 +104,7 @@ export function LineDimension({
         value={length}
         unit="mm"
         onValueChange={onChange}
+        title={title}
       />
     </>
   );

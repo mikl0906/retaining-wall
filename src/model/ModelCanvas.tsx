@@ -1,11 +1,16 @@
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
-import { CameraControls, Edges, PerspectiveCamera } from "@react-three/drei";
 import {
+  CameraControls,
+  Edges,
+  Html,
+  PerspectiveCamera,
+} from "@react-three/drei";
+import {
+  insertGroundLayer,
   setFoundationLeft,
   setFoundationRight,
   setFoundationThickness,
-  setGroundMaterial,
   setGroundThickness,
   setLiveLoad,
   setSlabAngle,
@@ -18,7 +23,7 @@ import { cutGeometryByPart, cutGeometryByPlane } from "@/manifold";
 import { LineDimension } from "./LineDimension";
 import { AngleDimension } from "./AngleDimension";
 import React from "react";
-import { MaterialSelect } from "./MaterialSelect";
+import { GroundLayerLabel } from "./GroundLayerLabel";
 import { AreaLoad } from "./AreaLoad";
 import {
   computeGroundPressure,
@@ -26,13 +31,15 @@ import {
 } from "@/groundPressure";
 import type { Pressure } from "@/types";
 import { HoverName } from "./HoverName";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // Z direction is up (common for engineering)
 // World length unit is 1 mm (common for engineering)
 THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
 
-const leftGroundFreeSpace = 1000;
-const rightGroundFreeSpace = 1000;
+const leftGroundFreeSpace = 1300;
+const rightGroundFreeSpace = 1300;
 const dimPlane = 500;
 
 const concreteMaterial = new THREE.MeshStandardMaterial({
@@ -278,6 +285,7 @@ function Scene() {
         up={new THREE.Vector3(0, -1, 0)}
         offset={model.foundation.left + 300}
         onChange={setWallHeight}
+        title="Wall height"
       />
       <LineDimension
         start={
@@ -287,6 +295,7 @@ function Scene() {
         up={new THREE.Vector3(0, 0, 1)}
         offset={200}
         onChange={setWallThickness}
+        title="Wall thickness"
       />
       {/* Foundation */}
       <HoverName name="Foundation" offset={[500, 0, 0]}>
@@ -312,6 +321,7 @@ function Scene() {
         up={new THREE.Vector3(0, -1, 0)}
         offset={300}
         onChange={setFoundationThickness}
+        title="Foundation thickness"
       />
       <LineDimension
         start={
@@ -325,6 +335,7 @@ function Scene() {
         up={new THREE.Vector3(0, 0, 1)}
         offset={-200}
         onChange={setFoundationLeft}
+        title="Foundation left width"
       />
       <LineDimension
         start={new THREE.Vector3(dimPlane, model.wall.thickness / 2, 0)}
@@ -338,6 +349,7 @@ function Scene() {
         up={new THREE.Vector3(0, 0, 1)}
         offset={-200}
         onChange={setFoundationRight}
+        title="Foundation right width"
       />
       {/* Ground Slab */}
       <HoverName name="Slab" offset={[500, 0, 0]}>
@@ -370,6 +382,7 @@ function Scene() {
         up={new THREE.Vector3(0, 1, 0)}
         offset={200}
         onChange={setSlabThickness}
+        title="Slab thickness"
       />
       <AngleDimension
         vertex={
@@ -420,6 +433,7 @@ function Scene() {
         normal={{ x: 0, y: 0, z: 1 }}
         onChange={setLiveLoad}
         alwaysShowValue
+        title="Load on slab"
       />
       {/* Ground left */}
       {groundLeft.map((ground, index) => (
@@ -433,20 +447,19 @@ function Scene() {
             up={new THREE.Vector3(0, -1, 0)}
             offset={200}
             onChange={(v) => setGroundThickness("left", index, v)}
+            title="Ground layer thickness"
           />
-          <MaterialSelect
+          <GroundLayerLabel
             position={
               new THREE.Vector3(dimPlane, leftEdge + 400, ground.middle)
             }
-            value={
-              model.materials.find(
-                (m) => m.id === model.groundLeft[index].materialId,
-              )!
-            }
-            options={model.materials}
-            onChange={(material) => {
-              setGroundMaterial("left", index, material.id);
-            }}
+            groundLocation="left"
+            layerIndex={index}
+          />
+          <AddGroundLayerButton
+            position={[dimPlane, leftEdge, ground.bottom + 80]}
+            groundLocation="left"
+            layerIndex={index}
           />
           {ground.top < model.foundation.thickness ? (
             <AreaLoad
@@ -619,21 +632,25 @@ function Scene() {
             up={new THREE.Vector3(0, 1, 0)}
             offset={200}
             onChange={(v) => setGroundThickness("right", index, v)}
+            title="Ground layer thickness"
           />
-          <MaterialSelect
+          <GroundLayerLabel
             position={
               new THREE.Vector3(dimPlane, rightEdge - 400, ground.middle)
             }
-            value={
-              model.materials.find(
-                (m) => m.id === model.groundRight[index].materialId,
-              )!
-            }
-            options={model.materials}
-            onChange={(material) => {
-              setGroundMaterial("right", index, material.id);
-            }}
+            groundLocation="right"
+            layerIndex={index}
           />
+          <Html position={[dimPlane, rightEdge, ground.bottom + 80]} center>
+            <Button
+              size="icon-sm"
+              variant="default"
+              title="Add ground layer"
+              onClick={() => insertGroundLayer("right", index)}
+            >
+              <Plus />
+            </Button>
+          </Html>
           {ground.top < model.foundation.thickness ? (
             <AreaLoad
               polygon={[
@@ -794,5 +811,28 @@ function Scene() {
         </React.Fragment>
       ))}
     </group>
+  );
+}
+
+function AddGroundLayerButton({
+  position,
+  groundLocation,
+  layerIndex,
+}: {
+  position: THREE.Vector3 | [number, number, number];
+  groundLocation: "left" | "right";
+  layerIndex: number;
+}) {
+  return (
+    <Html position={position} center>
+      <Button
+        size="icon-sm"
+        variant="default"
+        title="Add ground layer"
+        onClick={() => insertGroundLayer(groundLocation, layerIndex)}
+      >
+        <Plus />
+      </Button>
+    </Html>
   );
 }

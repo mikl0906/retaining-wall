@@ -26,7 +26,6 @@ export function MaterialsCard() {
       name: "New material",
       weight: 18,
       phi: 35,
-      alpha: 0,
     });
   };
 
@@ -48,7 +47,6 @@ export function MaterialsCard() {
               <TableHead>Name</TableHead>
               <TableHead>g, kN/m³</TableHead>
               <TableHead>φ, deg</TableHead>
-              <TableHead>α, deg</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -57,7 +55,6 @@ export function MaterialsCard() {
                 <TableCell>{ground.name}</TableCell>
                 <TableCell>{ground.weight}</TableCell>
                 <TableCell>{ground.phi}</TableCell>
-                <TableCell>{ground.alpha}</TableCell>
               </TableRow>
             ))}
           </TableBody>

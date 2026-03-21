@@ -56,10 +56,9 @@ const emptyModel: Model = {
       materialId: "bacf7a0a-c6af-428e-b946-5c7809b51dab",
     },
   ],
-  // gammaDL: 1.15,
-  // gammaLL: 1.5,
   gammaGdst: 1.1,
   gammaGstb: 0.9,
+  gammaRh: 1.1,
   q_k: 5,
 };
 
@@ -101,6 +100,9 @@ export const addMaterial = (material: GroundMaterial) => {
 };
 
 export const removeMaterial = (materialId: string) => {
+  if (useModel.getState().materials.length <= 1) {
+    return;
+  }
   useModel.setState((state) => ({
     ...state,
     materials: state.materials.filter((m) => m.id !== materialId),
@@ -219,6 +221,34 @@ export const setGroundMaterial = (
       ...updatedGround[index],
       materialId: materialId,
     };
+    return {
+      ...state,
+      [groundKey]: updatedGround,
+    };
+  });
+};
+
+export const insertGroundLayer = (ground: "left" | "right", index: number) => {
+  useModel.setState((state) => {
+    const groundKey = ground === "left" ? "groundLeft" : "groundRight";
+    const newLayer = {
+      thickness: 1000,
+      materialId: state.materials[0]?.id || "",
+    };
+    const updatedGround = [...state[groundKey]];
+    updatedGround.splice(index, 0, newLayer);
+    return {
+      ...state,
+      [groundKey]: updatedGround,
+    };
+  });
+};
+
+export const removeGroundLayer = (ground: "left" | "right", index: number) => {
+  useModel.setState((state) => {
+    const groundKey = ground === "left" ? "groundLeft" : "groundRight";
+    const updatedGround = [...state[groundKey]];
+    updatedGround.splice(index, 1);
     return {
       ...state,
       [groundKey]: updatedGround,

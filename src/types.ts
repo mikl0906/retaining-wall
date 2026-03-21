@@ -23,25 +23,26 @@ export const Model = z.object({
   materials: z.array(GroundMaterial),
   // Geometry
   wall: z.object({
-    height: z.number(), // in mm
-    thickness: z.number(), // in mm
+    height: z.number().default(3000), // in mm
+    thickness: z.number().default(300), // in mm
   }),
   foundation: z.object({
-    left: z.number(), // in mm
-    right: z.number(), // in mm
-    thickness: z.number(), // in mm
+    left: z.number().default(500), // in mm
+    right: z.number().default(800), // in mm
+    thickness: z.number().default(300), // in mm
   }),
   slab: z.object({
-    thickness: z.number(), // in mm
-    angle: z.number(), // in degrees, positive means sloping upwards to the right
+    thickness: z.number().default(300), // in mm
+    angle: z.number().default(10), // in degrees, positive means sloping upwards to the right
   }),
   groundLeft: z.array(GroundLayer),
   groundRight: z.array(GroundLayer),
   // Partial factors
-  gammaGdst: z.number(), // Partial factor for destabilizing load
-  gammaGstb: z.number(), // Partial factor for stabilizing load
+  gammaGdst: z.number().default(1.1), // Partial factor for destabilizing load
+  gammaGstb: z.number().default(0.9), // Partial factor for stabilizing load
+  gammaRh: z.number().default(1.1), // Partial factor for sliding resistance
   // Loads
-  q_k: z.number(), // Live load in kN/m²
+  q_k: z.number().default(5), // Live load in kN/m²
 });
 export type Model = z.infer<typeof Model>;
 
