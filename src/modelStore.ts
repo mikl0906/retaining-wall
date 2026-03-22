@@ -109,6 +109,25 @@ export const removeMaterial = (materialId: string) => {
   }));
 };
 
+export const updateMaterial = (
+  id: string,
+  updates: Partial<GroundMaterial>,
+) => {
+  useModel.setState((state) => ({
+    ...state,
+    materials: state.materials.map((m) =>
+      m.id === id ? { ...m, ...updates } : m,
+    ),
+  }));
+};
+
+export const setMaterials = (materials: GroundMaterial[]) => {
+  useModel.setState((state) => ({
+    ...state,
+    materials,
+  }));
+};
+
 // Geometry
 export const setWallHeight = (height: number) => {
   useModel.setState((state) => ({

@@ -19,7 +19,7 @@ export function Label({
   return (
     <Html position={position} center {...props}>
       <div
-        className={`px-2 rounded-md border text-nowrap ${variant === "primary" ? "bg-background/80" : "bg-background/30"}`}
+        className={`px-2 rounded-md border text-nowrap ${variant === "primary" ? "bg-background/80" : "bg-background/40"}`}
       >
         {text}
         <span className="opacity-60"> {unit}</span>

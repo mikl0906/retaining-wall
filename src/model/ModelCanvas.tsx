@@ -641,16 +641,11 @@ function Scene() {
             groundLocation="right"
             layerIndex={index}
           />
-          <Html position={[dimPlane, rightEdge, ground.bottom + 80]} center>
-            <Button
-              size="icon-sm"
-              variant="default"
-              title="Add ground layer"
-              onClick={() => insertGroundLayer("right", index)}
-            >
-              <Plus />
-            </Button>
-          </Html>
+          <AddGroundLayerButton
+            position={[dimPlane, rightEdge, ground.bottom + 80]}
+            groundLocation="right"
+            layerIndex={index}
+          />
           {ground.top < model.foundation.thickness ? (
             <AreaLoad
               polygon={[
@@ -827,7 +822,7 @@ function AddGroundLayerButton({
     <Html position={position} center>
       <Button
         size="icon-sm"
-        variant="default"
+        variant="outline"
         title="Add ground layer"
         onClick={() => insertGroundLayer(groundLocation, layerIndex)}
       >

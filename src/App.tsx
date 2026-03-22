@@ -28,7 +28,7 @@ export function App() {
   return (
     <ThemeProvider>
       {isDesktop ? <DesktopApp /> : <MobileApp />}
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="top-center" />
     </ThemeProvider>
   );
 }
