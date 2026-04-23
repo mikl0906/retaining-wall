@@ -1,0 +1,57 @@
+{
+    "name": "Untitled model",
+    "author": "",
+    "wall": {
+        "h": 3000,
+        "t": 300
+    },
+    "foundation": {
+        "l": 500,
+        "r": 800,
+        "t": 300
+    },
+    "slab": {
+        "t": 300,
+        "a": 10
+    },
+    "materials": [
+        {
+            "id": "oIpHKc8mVX",
+            "name": "Sand",
+            "weight": 17,
+            "phi": 33
+        },
+        {
+            "id": "va4DnJxQsA",
+            "name": "Gravel",
+            "weight": 18,
+            "phi": 35
+        },
+        {
+            "id": "vBNTM-fuUX",
+            "name": "Moraine",
+            "weight": 20,
+            "phi": 38
+        }
+    ],
+    "left": [
+        {
+            "t": 1500,
+            "matId": "oIpHKc8mVX"
+        }
+    ],
+    "right": [
+        {
+            "t": 2000,
+            "matId": "oIpHKc8mVX"
+        },
+        {
+            "t": 1000,
+            "matId": "oIpHKc8mVX"
+        }
+    ],
+    "y_Gdst": 1.1,
+    "y_Gstb": 0.9,
+    "y_Rh": 1.1,
+    "q_k": 5
+}
