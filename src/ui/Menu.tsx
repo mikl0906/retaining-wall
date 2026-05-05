@@ -17,22 +17,21 @@ export function Menu() {
 
   return (
     <div className="flex gap-2 min-w-0">
-      <Button variant="outline" onClick={handleOpen}>
+      <Button size="sm" variant="outline" onClick={handleOpen}>
         <Upload />
         Open file
       </Button>
-      <Button variant="outline" onClick={handleSave}>
+      <Button size="sm" variant="outline" onClick={handleSave}>
         <Download />
         Save to file
       </Button>
       <ToggleGroup
         size="sm"
-        type="single"
         variant="outline"
-        value={theme}
+        value={[theme]}
         onValueChange={(v) => {
-          if (v !== "light" && v !== "dark" && v !== "system") return;
-          setTheme(v);
+          if (v[0] !== "light" && v[0] !== "dark" && v[0] !== "system") return;
+          setTheme(v[0]);
         }}
       >
         <ToggleGroupItem

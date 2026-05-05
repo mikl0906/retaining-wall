@@ -1,7 +1,7 @@
-import React from "react";
+// import React from "react";
 import * as THREE from "three";
 import { NumberInput } from "./NumberInput";
-import { DragControls } from "./DragControls";
+// import { DragControls } from "./DragControls";
 
 const dimLine = new THREE.BufferGeometry().setFromPoints([
   new THREE.Vector3(-0.5, -1, 0),
@@ -24,10 +24,10 @@ const coneMaterial = new THREE.MeshBasicMaterial({
   side: THREE.DoubleSide,
 });
 
-const coneHighlightMaterial = new THREE.MeshBasicMaterial({
-  color: "white",
-  side: THREE.DoubleSide,
-});
+// const coneHighlightMaterial = new THREE.MeshBasicMaterial({
+//   color: "white",
+//   side: THREE.DoubleSide,
+// });
 
 interface DimensionLineProps {
   start: THREE.Vector3;
@@ -46,8 +46,8 @@ export function LineDimension({
   title,
   onChange,
 }: DimensionLineProps) {
-  const [leftConeHovered, setLeftConeHovered] = React.useState(false);
-  const [rightConeHovered, setRightConeHovered] = React.useState(false);
+  // const [leftConeHovered, setLeftConeHovered] = React.useState(false);
+  // const [rightConeHovered, setRightConeHovered] = React.useState(false);
 
   const center = new THREE.Vector3()
     .addVectors(start, end)
@@ -68,26 +68,36 @@ export function LineDimension({
         <lineSegments geometry={dimLine} scale={[length, offset, 1]}>
           <lineBasicMaterial color="magenta" />
         </lineSegments>
-        <DragControls
+        {/* <DragControls
           autoTransform
           onHover={(hovered) => setLeftConeHovered(hovered)}
           axisDrag="x"
-        >
-          <mesh
-            geometry={coneLeft}
-            position={[-length / 2, 0, 0]}
-            material={leftConeHovered ? coneHighlightMaterial : coneMaterial}
-          />
-          <mesh position={[-length / 2 + 50, 0, 0]}>
-            <sphereGeometry args={[70]} />
-            <meshBasicMaterial color="white" transparent opacity={0} />
-          </mesh>
-        </DragControls>
-        <DragControls
+        <mesh
+          geometry={coneLeft}
+          position={[-length / 2, 0, 0]}
+          material={leftConeHovered ? coneHighlightMaterial : coneMaterial}
+        />
+        <mesh position={[-length / 2 + 50, 0, 0]}>
+          <sphereGeometry args={[70]} />
+          <meshBasicMaterial color="white" transparent opacity={0} />
+        </mesh>
+        > 
+         </DragControls> */}
+        <mesh
+          geometry={coneLeft}
+          position={[-length / 2, 0, 0]}
+          material={coneMaterial}
+        />
+        <mesh position={[-length / 2 + 50, 0, 0]}>
+          <sphereGeometry args={[70]} />
+          <meshBasicMaterial color="white" transparent opacity={0} />
+        </mesh>
+
+        {/* <DragControls
           autoTransform
           onHover={(hovered) => setRightConeHovered(hovered)}
           axisDrag="x"
-        >
+          >
           <mesh
             geometry={coneRight}
             position={[length / 2, 0, 0]}
@@ -97,7 +107,16 @@ export function LineDimension({
             <sphereGeometry args={[70]} />
             <meshBasicMaterial color="white" transparent opacity={0} />
           </mesh>
-        </DragControls>
+        </DragControls> */}
+        <mesh
+          geometry={coneRight}
+          position={[length / 2, 0, 0]}
+          material={coneMaterial}
+        />
+        <mesh position={[length / 2 - 50, 0, 0]}>
+          <sphereGeometry args={[70]} />
+          <meshBasicMaterial color="white" transparent opacity={0} />
+        </mesh>
       </group>
       <NumberInput
         position={center}

@@ -1,4 +1,4 @@
-import Module, { type Mesh } from "manifold-3d";
+import Module, { type Mesh as ManifoldMesh } from "manifold-3d";
 import * as THREE from "three";
 
 // Load Manifold WASM library
@@ -27,7 +27,7 @@ function geometry2mesh(geometry: THREE.BufferGeometry) {
 }
 
 // Convert Manifold Mesh to Three.js BufferGeometry
-function mesh2geometry(mesh: Mesh) {
+function mesh2geometry(mesh: ManifoldMesh) {
   const indexed = new THREE.BufferGeometry();
   indexed.setAttribute(
     "position",

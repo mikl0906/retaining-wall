@@ -2,7 +2,7 @@
 
 A web app for structural calculation of retaining walls. Define geometry, soil materials, and loads — then instantly check stability against overturning and sliding.
 
-**[Live app](https://retainingwall.fly.dev)**
+**[App](https://retainingwall.fly.dev)**
 
 ## Features
 
@@ -37,8 +37,8 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ### Other scripts
 
-| Command | Description |
-|---|---|
-| `npm run build` | Production build (`tsc` + Vite) |
+| Command           | Description                          |
+| ----------------- | ------------------------------------ |
+| `npm run build`   | Production build (`tsc` + Vite)      |
 | `npm run preview` | Locally preview the production build |
-| `npm run lint` | Run ESLint |
+| `npm run lint`    | Run ESLint                           |

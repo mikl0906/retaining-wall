@@ -47,7 +47,7 @@ function DesktopApp() {
         <div className="absolute inset-0">
           <ModelCanvas />
         </div>
-        <div className="absolute top-4 left-4 min-w-80 flex flex-col gap-4">
+        <div className="absolute top-4 left-4 w-100 flex flex-col gap-4">
           <Menu />
           <ModelInfoCard />
           <PartialFactorsCard />
@@ -55,11 +55,12 @@ function DesktopApp() {
           <ResultsCard />
         </div>
         <div className="absolute top-4 right-4 flex gap-2">
-          <Button variant="outline" onClick={handlePrint}>
+          <Button size="sm" variant="outline" onClick={handlePrint}>
             <Printer />
             Print Report
           </Button>
           <Button
+            size="sm"
             variant="outline"
             onClick={() => setReportOpen((open) => !open)}
           >
