@@ -30,7 +30,8 @@ const coneHighlightMaterial = new THREE.MeshBasicMaterial({
   side: THREE.DoubleSide,
 });
 
-const MIN_LENGTH = 10; // mm
+const DRAG_SNAP = 50; // mm
+const MIN_LENGTH = 50; // mm
 
 interface DimensionLineProps {
   start: THREE.Vector3;
@@ -38,6 +39,10 @@ interface DimensionLineProps {
   up: THREE.Vector3;
   offset: number;
   title?: string;
+  /** Which cones can be dragged; "end" keeps the start cone static
+      (e.g. ground layers, which only grow from their top), "start"
+      keeps the end cone static */
+  drag?: "both" | "start" | "end";
   onChange: (value: number) => void;
 }
 
@@ -47,6 +52,7 @@ export function LineDimension({
   up,
   offset,
   title,
+  drag = "both",
   onChange,
 }: DimensionLineProps) {
   const [leftConeHovered, setLeftConeHovered] = React.useState(false);
@@ -90,7 +96,8 @@ export function LineDimension({
     const delta = conePosition.sub(dragStart.current.position).dot(xAxis);
     const newLength = Math.max(
       MIN_LENGTH,
-      Math.round(dragStart.current.length + sign * delta),
+      Math.round((dragStart.current.length + sign * delta) / DRAG_SNAP) *
+        DRAG_SNAP,
     );
     if (newLength !== length) {
       onChange(newLength);
@@ -104,44 +111,56 @@ export function LineDimension({
           <lineBasicMaterial color="magenta" />
         </lineSegments>
       </group>
-      <DragControls
-        autoTransform={false}
-        matrix={new THREE.Matrix4().setPosition(leftConePosition)}
-        axisDrag={xAxis}
-        onHover={setLeftConeHovered}
-        onDragStart={handleDragStart}
-        onDrag={(localMatrix) => applyDrag(-1, localMatrix)}
-      >
-        <group rotation={euler}>
-          <mesh
-            geometry={coneLeft}
-            material={leftConeHovered ? coneHighlightMaterial : coneMaterial}
-          />
-          <mesh position={[50, 0, 0]}>
-            <sphereGeometry args={[70]} />
-            <meshBasicMaterial color="white" transparent opacity={0} />
-          </mesh>
+      {drag !== "end" ? (
+        <DragControls
+          autoTransform={false}
+          matrix={new THREE.Matrix4().setPosition(leftConePosition)}
+          axisDrag={xAxis}
+          onHover={setLeftConeHovered}
+          onDragStart={handleDragStart}
+          onDrag={(localMatrix) => applyDrag(-1, localMatrix)}
+        >
+          <group rotation={euler}>
+            <mesh
+              geometry={coneLeft}
+              material={leftConeHovered ? coneHighlightMaterial : coneMaterial}
+            />
+            <mesh position={[50, 0, 0]}>
+              <sphereGeometry args={[70]} />
+              <meshBasicMaterial color="white" transparent opacity={0} />
+            </mesh>
+          </group>
+        </DragControls>
+      ) : (
+        <group position={leftConePosition} rotation={euler}>
+          <mesh geometry={coneLeft} material={coneMaterial} />
         </group>
-      </DragControls>
-      <DragControls
-        autoTransform={false}
-        matrix={new THREE.Matrix4().setPosition(rightConePosition)}
-        axisDrag={xAxis}
-        onHover={setRightConeHovered}
-        onDragStart={handleDragStart}
-        onDrag={(localMatrix) => applyDrag(1, localMatrix)}
-      >
-        <group rotation={euler}>
-          <mesh
-            geometry={coneRight}
-            material={rightConeHovered ? coneHighlightMaterial : coneMaterial}
-          />
-          <mesh position={[-50, 0, 0]}>
-            <sphereGeometry args={[70]} />
-            <meshBasicMaterial color="white" transparent opacity={0} />
-          </mesh>
+      )}
+      {drag !== "start" ? (
+        <DragControls
+          autoTransform={false}
+          matrix={new THREE.Matrix4().setPosition(rightConePosition)}
+          axisDrag={xAxis}
+          onHover={setRightConeHovered}
+          onDragStart={handleDragStart}
+          onDrag={(localMatrix) => applyDrag(1, localMatrix)}
+        >
+          <group rotation={euler}>
+            <mesh
+              geometry={coneRight}
+              material={rightConeHovered ? coneHighlightMaterial : coneMaterial}
+            />
+            <mesh position={[-50, 0, 0]}>
+              <sphereGeometry args={[70]} />
+              <meshBasicMaterial color="white" transparent opacity={0} />
+            </mesh>
+          </group>
+        </DragControls>
+      ) : (
+        <group position={rightConePosition} rotation={euler}>
+          <mesh geometry={coneRight} material={coneMaterial} />
         </group>
-      </DragControls>
+      )}
       <NumberInput
         position={center}
         value={length}

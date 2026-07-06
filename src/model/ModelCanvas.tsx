@@ -446,6 +446,7 @@ function Scene() {
             end={new THREE.Vector3(dimPlane, leftEdge, ground.top)}
             up={new THREE.Vector3(0, -1, 0)}
             offset={200}
+            drag="end"
             onChange={(v) => setGroundThickness("left", index, v)}
             title="Ground layer thickness"
           />
@@ -631,6 +632,7 @@ function Scene() {
             end={new THREE.Vector3(dimPlane, rightEdge, ground.top)}
             up={new THREE.Vector3(0, 1, 0)}
             offset={200}
+            drag="end"
             onChange={(v) => setGroundThickness("right", index, v)}
             title="Ground layer thickness"
           />
