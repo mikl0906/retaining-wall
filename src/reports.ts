@@ -1,4 +1,5 @@
 import { Eta } from "eta";
+import { computeResults } from "./results";
 import type { Model } from "./types";
 
 let eta: Eta | null = null;
@@ -36,12 +37,9 @@ export const printHtmlToPdf = (html: string) => {
 export const getReportHtml = async (model: Model) => {
   const eta = await getEta();
   const template = await fetch("/report.eta").then((res) => res.text());
-  return eta.renderString(template, { model });
+  return eta.renderString(template, { model, results: computeResults(model) });
 };
 
 export const generateReport = async (model: Model) => {
-  const eta = await getEta();
-  const template = await fetch("/report.eta").then((res) => res.text());
-  const html = eta.renderString(template, { model });
-  printHtmlToPdf(html);
+  printHtmlToPdf(await getReportHtml(model));
 };

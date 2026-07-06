@@ -37,8 +37,10 @@ export const Model = z.object({
   }),
   groundLeft: z.array(GroundLayer),
   groundRight: z.array(GroundLayer),
+  foundationMaterialId: z.string().default(""), // id of the soil material under the foundation base
   // Partial factors
-  gammaGdst: z.number().default(1.1), // Partial factor for destabilizing load
+  gammaGdst: z.number().default(1.1), // Partial factor for destabilizing permanent load
+  gammaQdst: z.number().default(1.5), // Partial factor for destabilizing variable load
   gammaGstb: z.number().default(0.9), // Partial factor for stabilizing load
   gammaRh: z.number().default(1.1), // Partial factor for sliding resistance
   // Loads

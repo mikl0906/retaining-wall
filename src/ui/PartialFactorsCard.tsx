@@ -1,4 +1,10 @@
-import { useModel } from "@/modelStore";
+import {
+  setGammaGdst,
+  setGammaGstb,
+  setGammaQdst,
+  setGammaRh,
+  useModel,
+} from "@/modelStore";
 import {
   Card,
   CardContent,
@@ -17,22 +23,46 @@ export function PartialFactorsCard() {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-[1fr_auto] gap-2 items-center">
-          {/* <p>
-            Permanent load γ<sub>g</sub>
-          </p>
-          <Input className="w-25" value={model.gammaDL} />
           <p>
-            Variable load γ<sub>q</sub>
+            Destabilizing load γ<sub>G,dst</sub>
           </p>
-          <Input className="w-25" value={model.gammaLL} /> */}
+          <Input
+            className="w-25"
+            type="number"
+            step={0.05}
+            value={model.gammaGdst}
+            onChange={(e) => setGammaGdst(Number(e.target.value))}
+          />
           <p>
-            Destabilizing load γ<sub>dstb</sub>
+            Variable load γ<sub>Q,dst</sub>
           </p>
-          <Input className="w-25" value={model.gammaGdst} />
+          <Input
+            className="w-25"
+            type="number"
+            step={0.05}
+            value={model.gammaQdst}
+            onChange={(e) => setGammaQdst(Number(e.target.value))}
+          />
           <p>
-            Stabilizing load γ<sub>stb</sub>
+            Stabilizing load γ<sub>G,stb</sub>
           </p>
-          <Input className="w-25" value={model.gammaGstb} />
+          <Input
+            className="w-25"
+            type="number"
+            step={0.05}
+            value={model.gammaGstb}
+            onChange={(e) => setGammaGstb(Number(e.target.value))}
+          />
+          <p>
+            Sliding resistance γ<sub>R,h</sub>
+          </p>
+          <Input
+            className="w-25"
+            type="number"
+            step={0.05}
+            value={model.gammaRh}
+            onChange={(e) => setGammaRh(Number(e.target.value))}
+          />
         </div>
       </CardContent>
     </Card>

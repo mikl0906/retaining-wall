@@ -9,10 +9,18 @@ import {
 import {
   addMaterial,
   removeMaterial,
+  setFoundationMaterial,
   setMaterials,
   updateMaterial,
   useModel,
 } from "@/modelStore";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { GripVertical, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import type { GroundMaterial } from "@/types";
@@ -23,6 +31,7 @@ import { move } from "@dnd-kit/helpers";
 
 export function MaterialsCard() {
   const materials = useModel((state) => state.materials);
+  const foundationMaterialId = useModel((state) => state.foundationMaterialId);
 
   const handleAddMaterial = () => {
     addMaterial({
@@ -72,6 +81,29 @@ export function MaterialsCard() {
             ))}
           </div>
         </DragDropProvider>
+        <div className="grid grid-cols-[1fr_auto] gap-2 items-center mt-4">
+          <p className="text-sm" title="Soil under the foundation base, used for the sliding check">
+            Soil under foundation
+          </p>
+          <Select
+            items={materials.map((m) => ({ value: m.id, label: m.name }))}
+            value={foundationMaterialId}
+            onValueChange={(value) => {
+              if (typeof value === "string") setFoundationMaterial(value);
+            }}
+          >
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {materials.map((m) => (
+                <SelectItem key={m.id} value={m.id}>
+                  {m.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </CardContent>
     </Card>
   );

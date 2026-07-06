@@ -56,7 +56,9 @@ const emptyModel: Model = {
       materialId: "bacf7a0a-c6af-428e-b946-5c7809b51dab",
     },
   ],
+  foundationMaterialId: "bacf7a0a-c6af-428e-b946-5c7809b51dab",
   gammaGdst: 1.1,
+  gammaQdst: 1.5,
   gammaGstb: 0.9,
   gammaRh: 1.1,
   q_k: 5,
@@ -91,6 +93,41 @@ export const useModel = create<Model>()(
   }),
 );
 
+// Whole model
+export const setModel = (model: Model) => {
+  useModel.setState(model);
+};
+
+// Metadata
+export const setName = (name: string) => {
+  useModel.setState((state) => ({ ...state, name }));
+};
+
+export const setAuthor = (author: string) => {
+  useModel.setState((state) => ({ ...state, author }));
+};
+
+export const setDate = (date: string) => {
+  useModel.setState((state) => ({ ...state, date }));
+};
+
+// Partial factors
+export const setGammaGdst = (gammaGdst: number) => {
+  useModel.setState((state) => ({ ...state, gammaGdst }));
+};
+
+export const setGammaQdst = (gammaQdst: number) => {
+  useModel.setState((state) => ({ ...state, gammaQdst }));
+};
+
+export const setGammaGstb = (gammaGstb: number) => {
+  useModel.setState((state) => ({ ...state, gammaGstb }));
+};
+
+export const setGammaRh = (gammaRh: number) => {
+  useModel.setState((state) => ({ ...state, gammaRh }));
+};
+
 // Materials
 export const addMaterial = (material: GroundMaterial) => {
   useModel.setState((state) => ({
@@ -103,10 +140,21 @@ export const removeMaterial = (materialId: string) => {
   if (useModel.getState().materials.length <= 1) {
     return;
   }
-  useModel.setState((state) => ({
-    ...state,
-    materials: state.materials.filter((m) => m.id !== materialId),
-  }));
+  useModel.setState((state) => {
+    const materials = state.materials.filter((m) => m.id !== materialId);
+    return {
+      ...state,
+      materials,
+      foundationMaterialId:
+        state.foundationMaterialId === materialId
+          ? (materials[0]?.id ?? "")
+          : state.foundationMaterialId,
+    };
+  });
+};
+
+export const setFoundationMaterial = (foundationMaterialId: string) => {
+  useModel.setState((state) => ({ ...state, foundationMaterialId }));
 };
 
 export const updateMaterial = (

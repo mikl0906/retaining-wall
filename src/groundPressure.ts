@@ -1,4 +1,20 @@
-import type { GroundLayer, GroundMaterial, Pressure } from "./types";
+import type {
+  GroundLayer,
+  GroundMaterial,
+  LayerGeometry,
+  Pressure,
+} from "./types";
+
+// Cumulative {bottom, top} levels in mm from z = 0 (bottom of the foundation),
+// bottom-to-top, same indexing as the computeGroundPressure output
+export const computeLayerGeometry = (layers: GroundLayer[]): LayerGeometry => {
+  let level = 0;
+  return layers.map((layer) => {
+    const bottom = level;
+    level += layer.thickness;
+    return { bottom, top: level };
+  });
+};
 
 export const computeGroundPressure = (
   layers: GroundLayer[],
@@ -49,14 +65,14 @@ export const computeGroundPressure = (
   };
 };
 
-const getKo = (phi: number, betta: number) => {
+export const getKo = (phi: number, betta: number) => {
   const phiRad = (phi * Math.PI) / 180;
   const bettaRad = (betta * Math.PI) / 180;
 
   return (1 - Math.sin(phiRad)) * (1 + Math.sin(bettaRad));
 };
 
-const getKa = (phi: number, alpha: number, betta: number) => {
+export const getKa = (phi: number, alpha: number, betta: number) => {
   const f = (phi * Math.PI) / 180;
   const a = (alpha * Math.PI) / 180;
   const b = (betta * Math.PI) / 180;
@@ -100,43 +116,3 @@ export const computeGroundWeightAtLevel = (
   }
   return weight;
 };
-
-// const testMaterials: GroundMaterial[] = [
-//   {
-//     id: "1",
-//     name: "Sand",
-//     weight: 17,
-//     phi: 33,
-//     alpha: 0,
-//   },
-//   {
-//     id: "2",
-//     name: "Gravel",
-//     weight: 18,
-//     phi: 35,
-//     alpha: 0,
-//   },
-//   {
-//     id: "3",
-//     name: "Moraine",
-//     weight: 20,
-//     phi: 38,
-//     alpha: 0,
-//   },
-// ];
-
-// const testLayers: GroundLayer[] = [
-//   {
-//     thickness: 150,
-//     materialId: "2",
-//   },
-//   {
-//     thickness: 850,
-//     materialId: "3",
-//   },
-// ];
-
-// const q_d = 5.5;
-// const betta = 10;
-// const result = computeGroundPressure(testLayers, testMaterials, betta, q_d);
-// console.log(result);

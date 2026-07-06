@@ -28,8 +28,8 @@ export type DragControlsProps = {
   matrix?: THREE.Matrix4;
   /** Lock the drag to a specific axis */
   axisLock?: "x" | "y" | "z";
-  /** Drag only along a specific axis. If set, this takes precedence over axisLock. */
-  axisDrag?: "x" | "y" | "z";
+  /** Drag only along a specific axis (world axis name or arbitrary world-space direction). If set, this takes precedence over axisLock. */
+  axisDrag?: "x" | "y" | "z" | THREE.Vector3;
   /** Limits */
   dragLimits?: [
     [number, number] | undefined,
@@ -83,7 +83,6 @@ export const DragControls: ForwardRefComponent<DragControlsProps, THREE.Group> =
         {
           onHover: ({ hovering }) => onHover && onHover(hovering ?? false),
           onDragStart: ({ event }) => {
-            // eslint-disable-next-line react-hooks/immutability
             if (defaultControls) defaultControls.enabled = false;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { point } = event as any;
@@ -97,16 +96,20 @@ export const DragControls: ForwardRefComponent<DragControlsProps, THREE.Group> =
             dragOffset.copy(mousePosition3D).sub(initialModelPosition);
 
             if (axisDrag) {
-              switch (axisDrag) {
-                case "x":
-                  dragAxis.set(1, 0, 0);
-                  break;
-                case "y":
-                  dragAxis.set(0, 1, 0);
-                  break;
-                case "z":
-                  dragAxis.set(0, 0, 1);
-                  break;
+              if (axisDrag instanceof THREE.Vector3) {
+                dragAxis.copy(axisDrag).normalize();
+              } else {
+                switch (axisDrag) {
+                  case "x":
+                    dragAxis.set(1, 0, 0);
+                    break;
+                  case "y":
+                    dragAxis.set(0, 1, 0);
+                    break;
+                  case "z":
+                    dragAxis.set(0, 0, 1);
+                    break;
+                }
               }
               axisGrabOffset.current = dragOffset.dot(dragAxis);
             }
@@ -237,7 +240,6 @@ export const DragControls: ForwardRefComponent<DragControlsProps, THREE.Group> =
             invalidate();
           },
           onDragEnd: () => {
-            // eslint-disable-next-line react-hooks/immutability
             if (defaultControls) defaultControls.enabled = true;
 
             if (onDragEnd) onDragEnd();

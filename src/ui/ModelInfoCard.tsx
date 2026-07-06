@@ -1,4 +1,4 @@
-import { useModel } from "@/modelStore";
+import { setAuthor, setDate, setName, useModel } from "@/modelStore";
 import {
   Card,
   CardContent,
@@ -18,11 +18,20 @@ export function ModelInfoCard() {
       <CardContent>
         <div className="grid grid-cols-[4rem_1fr] gap-2 items-center">
           <p>Name</p>
-          <Input value={model.name} />
+          <Input
+            value={model.name}
+            onChange={(e) => setName(e.target.value)}
+          />
           <p>Author</p>
-          <Input value={model.author} />
+          <Input
+            value={model.author}
+            onChange={(e) => setAuthor(e.target.value)}
+          />
           <p>Date</p>
-          <Input value={model.date} />
+          <Input
+            value={model.date}
+            onChange={(e) => setDate(e.target.value)}
+          />
         </div>
       </CardContent>
     </Card>

@@ -7,30 +7,64 @@
       size: A4 portrait;
       margin: 20mm;
     }
+
+    table {
+      border-collapse: collapse;
+      margin: 8px 0;
+    }
+
+    th, td {
+      border: 1px solid #9ca3af;
+      padding: 4px 10px;
+      text-align: left;
+    }
+
+    th {
+      background: #f3f4f6;
+    }
+
+    .ok {
+      color: #16a34a;
+      font-weight: bold;
+    }
+
+    .not-ok {
+      color: #dc2626;
+      font-weight: bold;
+    }
+
+    .note {
+      font-size: 0.85em;
+      color: #6b7280;
+    }
   </style>
 
 
   <body style="font-family: Arial, sans-serif;">
     <h1>Retaining Wall Calculation Report</h1>
-    <p>Name: <%=it.model.name%></p>
-    <p>Author: <%=it.model.author%></p>
-    <p>Date: <%=it.model.date%></p>
+    <p>Name: <%= it.model.name %></p>
+    <p>Author: <%= it.model.author %></p>
+    <p>Date: <%= it.model.date %></p>
 
     <h2>Geometry</h2>
-    <p>Wall height: <%=it.model.wall.height%> mm</p>
-    <p>Wall thickness: <%=it.model.wall.thickness%> mm</p>
-    <p>Foundation left: <%=it.model.foundation.left%> mm</p>
-    <p>Foundation right: <%=it.model.foundation.right%> mm</p>
-    <p>Foundation thickness: <%=it.model.foundation.thickness%> mm</p>
+    <p>Wall height: <%= it.model.wall.height %> mm</p>
+    <p>Wall thickness: <%= it.model.wall.thickness %> mm</p>
+    <p>Foundation left: <%= it.model.foundation.left %> mm</p>
+    <p>Foundation right: <%= it.model.foundation.right %> mm</p>
+    <p>Foundation thickness: <%= it.model.foundation.thickness %> mm</p>
+    <p>Slab thickness: <%= it.model.slab.thickness %> mm</p>
+    <p>Slab angle: <%= it.model.slab.angle %>&deg;</p>
 
     <h2>Partial factors</h2>
-    <p>Permanent load γ<sub>g</sub>: <%=it.model.gammaDL%></p>
-    <p>Variable load γ<sub>q</sub>: <%=it.model.gammaLL%></p>
-    <p>Destabilizing load γ<sub>dstb</sub>: <%=it.model.gammaGdst%></p>
-    <p>Stabilizing load γ<sub>stb</sub>: <%=it.model.gammaGstb%></p>
+    <p>Destabilizing load &gamma;<sub>G,dst</sub>: <%= it.model.gammaGdst %></p>
+    <p>Variable load &gamma;<sub>Q,dst</sub>: <%= it.model.gammaQdst %></p>
+    <p>Stabilizing load &gamma;<sub>G,stb</sub>: <%= it.model.gammaGstb %></p>
+    <p>Sliding resistance &gamma;<sub>R,h</sub>: <%= it.model.gammaRh %></p>
 
     <h2>Loads</h2>
-    <p>Live load on slab: <%=it.model.q_k%> kN/m<sup>2</sup></p>
+    <p>Live load on slab q<sub>k</sub>: <%= it.model.q_k %> kN/m<sup>2</sup></p>
+    <p>Permanent surcharge (slab self-weight) q<sub>perm</sub>: <%= it.results.q_perm.toFixed(1) %> kN/m<sup>2</sup></p>
+    <p>Total surcharge q<sub>d</sub>: <%= it.results.q_d.toFixed(1) %> kN/m<sup>2</sup></p>
 
     <h2>Materials</h2>
     <table>
@@ -38,7 +72,7 @@
         <tr>
           <th>Material</th>
           <th>Weight (kN/m<sup>3</sup>)</th>
-          <th>Friction angle (°)</th>
+          <th>Friction angle (&deg;)</th>
         </tr>
       </thead>
       <tbody>
@@ -52,11 +86,129 @@
       </tbody>
     </table>
 
+    <h2>Ground layers</h2>
+    <% const materialName = (id) => { const m = it.model.materials.find((m) => m.id === id); return m ? m.name : "?"; } %>
+    <h3>Left side (front)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Layer (bottom to top)</th>
+          <th>Material</th>
+          <th>Thickness (mm)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% it.model.groundLeft.forEach((layer, i) => { %>
+          <tr>
+            <td><%= i + 1 %></td>
+            <td><%= materialName(layer.materialId) %></td>
+            <td><%= layer.thickness %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <h3>Right side (backfill)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Layer (bottom to top)</th>
+          <th>Material</th>
+          <th>Thickness (mm)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% it.model.groundRight.forEach((layer, i) => { %>
+          <tr>
+            <td><%= i + 1 %></td>
+            <td><%= materialName(layer.materialId) %></td>
+            <td><%= layer.thickness %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <p>Soil under foundation: <%= materialName(it.model.foundationMaterialId) %></p>
+
     <h2>Results</h2>
 
-    <h3>Stability</h3>
-    <h3>Overturn</h3>
+    <h3>Overturning (EQU)</h3>
+    <table>
+      <tbody>
+        <tr>
+          <td>Active earth moment, permanent M<sub>a,perm</sub></td>
+          <td><%= it.results.overturning.MaPerm.toFixed(1) %> kN&middot;m/m</td>
+        </tr>
+        <tr>
+          <td>Active earth moment, variable M<sub>a,var</sub></td>
+          <td><%= it.results.overturning.MaVar.toFixed(1) %> kN&middot;m/m</td>
+        </tr>
+        <tr>
+          <td>Front earth resisting moment M<sub>p</sub></td>
+          <td><%= it.results.overturning.Mp.toFixed(1) %> kN&middot;m/m</td>
+        </tr>
+        <tr>
+          <td>Moment of weights M<sub>weights</sub></td>
+          <td><%= it.results.overturning.Mweights.toFixed(1) %> kN&middot;m/m</td>
+        </tr>
+        <tr>
+          <td>Design destabilizing moment M<sub>dst</sub> = &gamma;<sub>G,dst</sub>&middot;M<sub>a,perm</sub> + &gamma;<sub>Q,dst</sub>&middot;M<sub>a,var</sub></td>
+          <td><%= it.results.overturning.Mdst.toFixed(1) %> kN&middot;m/m</td>
+        </tr>
+        <tr>
+          <td>Design stabilizing moment M<sub>stb</sub> = &gamma;<sub>G,stb</sub>&middot;(M<sub>weights</sub> + M<sub>p</sub>)</td>
+          <td><%= it.results.overturning.Mstb.toFixed(1) %> kN&middot;m/m</td>
+        </tr>
+        <tr>
+          <td>Utilization M<sub>dst</sub> / M<sub>stb</sub></td>
+          <% if (it.results.overturning.utilization < 1) { %>
+            <td class="ok"><%= (it.results.overturning.utilization * 100).toFixed(0) %> % &mdash; OK</td>
+          <% } else { %>
+            <td class="not-ok"><%= Number.isFinite(it.results.overturning.utilization) ? (it.results.overturning.utilization * 100).toFixed(0) + " %" : "&infin;" %> &mdash; NOT OK</td>
+          <% } %>
+        </tr>
+      </tbody>
+    </table>
+
     <h3>Sliding</h3>
-    <h3>TODO: Finish this</h3>
+    <table>
+      <tbody>
+        <tr>
+          <td>Active thrust, permanent E<sub>a,perm</sub></td>
+          <td><%= it.results.sliding.EaPerm.toFixed(1) %> kN/m</td>
+        </tr>
+        <tr>
+          <td>Active thrust, variable E<sub>a,var</sub></td>
+          <td><%= it.results.sliding.EaVar.toFixed(1) %> kN/m</td>
+        </tr>
+        <tr>
+          <td>Characteristic vertical force V<sub>k</sub></td>
+          <td><%= it.results.sliding.Vk.toFixed(1) %> kN/m</td>
+        </tr>
+        <tr>
+          <td>Base friction angle &delta;</td>
+          <td><%= it.results.sliding.deltaDeg.toFixed(1) %>&deg;</td>
+        </tr>
+        <tr>
+          <td>Design driving force H<sub>d</sub> = &gamma;<sub>G,dst</sub>&middot;E<sub>a,perm</sub> + &gamma;<sub>Q,dst</sub>&middot;E<sub>a,var</sub></td>
+          <td><%= it.results.sliding.Hd.toFixed(1) %> kN/m</td>
+        </tr>
+        <tr>
+          <td>Design resistance R<sub>d</sub> = &gamma;<sub>G,stb</sub>&middot;V<sub>k</sub>&middot;tan&delta; / &gamma;<sub>R,h</sub></td>
+          <td><%= it.results.sliding.Rd.toFixed(1) %> kN/m</td>
+        </tr>
+        <tr>
+          <td>Utilization H<sub>d</sub> / R<sub>d</sub></td>
+          <% if (it.results.sliding.utilization < 1) { %>
+            <td class="ok"><%= (it.results.sliding.utilization * 100).toFixed(0) %> % &mdash; OK</td>
+          <% } else { %>
+            <td class="not-ok"><%= Number.isFinite(it.results.sliding.utilization) ? (it.results.sliding.utilization * 100).toFixed(0) + " %" : "&infin;" %> &mdash; NOT OK</td>
+          <% } %>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Method notes</h3>
+    <p class="note">Active earth pressure by Coulomb with wall friction &delta; = &phi;; the thrust is conservatively taken as fully horizontal.</p>
+    <p class="note">Front-side earth resistance is modeled with the at-rest coefficient K<sub>0</sub> and neglected in the sliding check (EN 1997-1, 6.5.3(5)).</p>
+    <p class="note">Sliding resistance for cast-in-place concrete: &delta; = &phi; of the soil under the foundation (EN 1997-1, 6.5.3).</p>
   </body>
 </html>
