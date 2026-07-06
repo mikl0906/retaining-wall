@@ -172,7 +172,7 @@
             ...layersL.map((g) => ({ za: g.bottom, zb: g.top, at: leftEdge + 250 })),
             ...layersR.map((g) => ({ za: g.bottom, zb: g.top, at: rightEdge - 250 })),
             // Slab thickness at its right end face
-            { za: slopedTop, zb: slabTop, at: rightEdge + 150 },
+            { za: slopedTop, zb: slabTop, at: rightEdge + 250 },
           ];
         %>
         <% vDims.forEach((d) => { const mid = sy((d.za + d.zb) / 2); %>
