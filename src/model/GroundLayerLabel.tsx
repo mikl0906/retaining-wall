@@ -34,7 +34,12 @@ export function GroundLayerLabel({
   };
 
   return (
-    <Html position={position} center className="flex gap-1">
+    <Html
+      position={position}
+      center
+      zIndexRange={[40, 0]}
+      className="flex gap-1"
+    >
       <select
         value={material.id}
         onChange={handleMaterialChange}

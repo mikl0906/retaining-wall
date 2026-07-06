@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { GripVertical, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { NumberField } from "@/components/number-field";
 import type { GroundMaterial } from "@/types";
 import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable } from "@dnd-kit/react/sortable";
@@ -138,23 +139,17 @@ function MaterialItem({
         value={material.name}
         onChange={(e) => updateMaterial(material.id, { name: e.target.value })}
       />
-      <Input
-        type="number"
+      <NumberField
+        min={1}
+        max={30}
         value={material.weight}
-        onChange={(e) =>
-          updateMaterial(material.id, {
-            weight: Number(e.target.value),
-          })
-        }
+        onValueChange={(weight) => updateMaterial(material.id, { weight })}
       />
-      <Input
-        type="number"
+      <NumberField
+        min={0}
+        max={45}
         value={material.phi}
-        onChange={(e) =>
-          updateMaterial(material.id, {
-            phi: Number(e.target.value),
-          })
-        }
+        onValueChange={(phi) => updateMaterial(material.id, { phi })}
       />
       <Button
         size="icon-sm"

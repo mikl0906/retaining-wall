@@ -49,7 +49,7 @@ export function NumberInput({
   }
 
   return (
-    <Html position={position} center {...props}>
+    <Html position={position} center zIndexRange={[40, 0]} {...props}>
       {editing ? (
         <input
           ref={inputRef}

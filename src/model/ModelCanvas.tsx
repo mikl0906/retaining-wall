@@ -821,7 +821,7 @@ function AddGroundLayerButton({
   layerIndex: number;
 }) {
   return (
-    <Html position={position} center>
+    <Html position={position} center zIndexRange={[40, 0]}>
       <Button
         size="icon-sm"
         variant="outline"

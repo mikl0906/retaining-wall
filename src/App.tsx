@@ -48,7 +48,7 @@ function DesktopApp() {
         <div className="absolute inset-0">
           <ModelCanvas />
         </div>
-        <div className="absolute top-4 left-4 bottom-4 w-100 flex flex-col gap-4">
+        <div className="absolute top-4 left-4 bottom-4 z-50 w-100 flex flex-col gap-4">
           <Menu />
           <ScrollArea className="min-h-0 flex-1">
             <div className="flex flex-col gap-4">
@@ -59,7 +59,7 @@ function DesktopApp() {
             </div>
           </ScrollArea>
         </div>
-        <div className="absolute top-4 right-4 flex gap-2">
+        <div className="absolute top-4 right-4 z-50 flex gap-2">
           <Button size="sm" variant="outline" onClick={handlePrint}>
             <Printer />
             Print Report
@@ -85,10 +85,11 @@ function DesktopApp() {
   );
 }
 
-const snapPoints = ["120rem", 1];
+const snapPoints = ["10rem", 1];
 
 export function MobileApp() {
   const [snap, setSnap] = useState<number | string | null>(snapPoints[0]);
+  const model = useModel();
 
   return (
     <>
@@ -110,12 +111,21 @@ export function MobileApp() {
             </DrawerDescription>
           </DrawerHeader>
 
-          <div className="flex-1 overflow-y-auto px-4">
-            <div className="flex flex-col gap-4 pb-4">
+          <div className="flex-1 overflow-y-auto">
+            <div className="flex flex-col gap-4 p-4">
               <Menu />
+              <ModelInfoCard />
               <PartialFactorsCard />
               <MaterialsCard />
               <ResultsCard />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => generateReport(model)}
+              >
+                <Printer />
+                Print Report
+              </Button>
             </div>
           </div>
         </DrawerContent>

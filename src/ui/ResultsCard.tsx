@@ -6,27 +6,52 @@ import {
   CardTitle,
 } from "../components/ui/card";
 
-function UtilizationValue({
+const WARN_LEVEL = 0.85;
+
+function UtilizationCheck({
+  label,
   utilization,
-  title,
+  detail,
 }: {
+  label: string;
   utilization: number;
-  title: string;
+  detail: React.ReactNode;
 }) {
-  if (!Number.isFinite(utilization)) {
-    return (
-      <p className="text-red-500" title={title}>
-        –
-      </p>
-    );
-  }
+  const finite = Number.isFinite(utilization);
+  const ok = finite && utilization < 1;
+  const warn = ok && utilization >= WARN_LEVEL;
+  const barColor = !ok
+    ? "bg-red-500"
+    : warn
+      ? "bg-amber-500"
+      : "bg-green-500";
+  const verdictColor = !ok
+    ? "text-red-600 dark:text-red-400"
+    : warn
+      ? "text-amber-600 dark:text-amber-400"
+      : "text-green-600 dark:text-green-500";
+
   return (
-    <p
-      className={utilization < 1 ? "text-green-500" : "text-red-500"}
-      title={title}
-    >
-      {Math.round(utilization * 100)}%
-    </p>
+    <div className="flex flex-col gap-1">
+      <div className="flex items-baseline gap-2">
+        <p className="flex-1">{label}</p>
+        <p className="font-medium tabular-nums">
+          {finite ? `${Math.round(utilization * 100)}%` : "—"}
+        </p>
+        <p className={`w-13 text-right text-xs font-semibold ${verdictColor}`}>
+          {ok ? "OK" : "Not OK"}
+        </p>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+        <div
+          className={`h-full rounded-full ${barColor}`}
+          style={{
+            width: `${finite ? Math.min(100, utilization * 100) : 100}%`,
+          }}
+        />
+      </div>
+      <p className="text-xs text-muted-foreground tabular-nums">{detail}</p>
+    </div>
   );
 }
 
@@ -39,21 +64,27 @@ export function ResultsCard() {
         <CardTitle>Results</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col gap-2">
-          <div className="flex gap-2 items-center">
-            <p className="flex-1">Overturn</p>
-            <UtilizationValue
-              utilization={overturning.utilization}
-              title={`Mdst = ${overturning.Mdst.toFixed(1)} kN·m/m, Mstb = ${overturning.Mstb.toFixed(1)} kN·m/m`}
-            />
-          </div>
-          <div className="flex gap-2 items-center">
-            <p className="flex-1">Sliding</p>
-            <UtilizationValue
-              utilization={sliding.utilization}
-              title={`Hd = ${sliding.Hd.toFixed(1)} kN/m, Rd = ${sliding.Rd.toFixed(1)} kN/m`}
-            />
-          </div>
+        <div className="flex flex-col gap-4">
+          <UtilizationCheck
+            label="Overturning"
+            utilization={overturning.utilization}
+            detail={
+              <>
+                M<sub>dst</sub> {overturning.Mdst.toFixed(1)} / M<sub>stb</sub>{" "}
+                {overturning.Mstb.toFixed(1)} kN·m/m
+              </>
+            }
+          />
+          <UtilizationCheck
+            label="Sliding"
+            utilization={sliding.utilization}
+            detail={
+              <>
+                H<sub>d</sub> {sliding.Hd.toFixed(1)} / R<sub>d</sub>{" "}
+                {sliding.Rd.toFixed(1)} kN/m
+              </>
+            }
+          />
         </div>
       </CardContent>
     </Card>

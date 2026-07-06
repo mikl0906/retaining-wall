@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
-import { Input } from "../components/ui/input";
+import { NumberField } from "../components/number-field";
 
 export function PartialFactorsCard() {
   const model = useModel();
@@ -26,42 +26,46 @@ export function PartialFactorsCard() {
           <p>
             Destabilizing load γ<sub>G,dst</sub>
           </p>
-          <Input
+          <NumberField
             className="w-25"
-            type="number"
             step={0.05}
+            min={0.1}
+            max={10}
             value={model.gammaGdst}
-            onChange={(e) => setGammaGdst(Number(e.target.value))}
+            onValueChange={setGammaGdst}
           />
           <p>
             Variable load γ<sub>Q,dst</sub>
           </p>
-          <Input
+          <NumberField
             className="w-25"
-            type="number"
             step={0.05}
+            min={0.1}
+            max={10}
             value={model.gammaQdst}
-            onChange={(e) => setGammaQdst(Number(e.target.value))}
+            onValueChange={setGammaQdst}
           />
           <p>
             Stabilizing load γ<sub>G,stb</sub>
           </p>
-          <Input
+          <NumberField
             className="w-25"
-            type="number"
             step={0.05}
+            min={0.1}
+            max={10}
             value={model.gammaGstb}
-            onChange={(e) => setGammaGstb(Number(e.target.value))}
+            onValueChange={setGammaGstb}
           />
           <p>
             Sliding resistance γ<sub>R,h</sub>
           </p>
-          <Input
+          <NumberField
             className="w-25"
-            type="number"
             step={0.05}
+            min={0.1}
+            max={10}
             value={model.gammaRh}
-            onChange={(e) => setGammaRh(Number(e.target.value))}
+            onValueChange={setGammaRh}
           />
         </div>
       </CardContent>

@@ -17,7 +17,7 @@ export function Label({
   ...props
 }: LabelProps) {
   return (
-    <Html position={position} center {...props}>
+    <Html position={position} center zIndexRange={[40, 0]} {...props}>
       <div
         className={`px-2 rounded-md border text-nowrap ${variant === "primary" ? "bg-background/80" : "bg-background/30"}`}
       >
