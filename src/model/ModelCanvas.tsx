@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import {
   CameraControls,
   Edges,
@@ -52,7 +52,40 @@ const soilMaterial = new THREE.MeshStandardMaterial({
   opacity: 0.5,
 });
 
-export function ModelCanvas() {
+// Shifts the camera projection so the model centers in the part of the
+// canvas not covered by UI panels (left column / bottom drawer). Unlike
+// moving the canvas element, the canvas keeps covering the whole screen,
+// so no background edge appears when zooming.
+function ViewOffset({ left, bottom }: { left: number; bottom: number }) {
+  const camera = useThree((s) => s.camera as THREE.PerspectiveCamera);
+  const size = useThree((s) => s.size);
+  const invalidate = useThree((s) => s.invalidate);
+
+  React.useEffect(() => {
+    camera.setViewOffset(
+      size.width,
+      size.height,
+      -left / 2,
+      bottom / 2,
+      size.width,
+      size.height,
+    );
+    invalidate();
+    return () => camera.clearViewOffset();
+  }, [camera, size, left, bottom, invalidate]);
+
+  return null;
+}
+
+export function ModelCanvas({
+  panelLeft = 0,
+  panelBottom = 0,
+}: {
+  /** Width of the UI panel covering the canvas on the left, px */
+  panelLeft?: number;
+  /** Height of the UI panel covering the canvas at the bottom, px */
+  panelBottom?: number;
+}) {
   return (
     <Canvas
       frameloop="demand"
@@ -89,6 +122,7 @@ export function ModelCanvas() {
         maxDistance={20000}
         draggingSmoothTime={0.1}
       />
+      <ViewOffset left={panelLeft} bottom={panelBottom} />
       <Scene />
     </Canvas>
   );

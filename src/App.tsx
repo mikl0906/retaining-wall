@@ -46,12 +46,16 @@ function DesktopApp() {
     <div className="h-screen flex">
       <div className="relative flex-3">
         <div className="absolute inset-0">
-          <ModelCanvas />
+          {/* w-100 card column + left-4 offset */}
+          <ModelCanvas panelLeft={300} />
         </div>
         <div className="absolute top-4 left-4 bottom-4 z-50 w-100 flex flex-col gap-4">
           <Menu />
           <ScrollArea className="min-h-0 flex-1">
-            <div className="flex flex-col gap-4">
+            {/* Cards draw their outline as a ring (box-shadow outside the
+                border box); 1px padding keeps it from being clipped by the
+                scroll viewport */}
+            <div className="flex flex-col gap-4 p-px">
               <ModelInfoCard />
               <PartialFactorsCard />
               <MaterialsCard />
@@ -94,7 +98,8 @@ export function MobileApp() {
   return (
     <>
       <div className="absolute w-full h-full">
-        <ModelCanvas />
+        {/* 10rem drawer snap covers the bottom of the screen */}
+        <ModelCanvas panelBottom={160} />
       </div>
       <Drawer
         open
