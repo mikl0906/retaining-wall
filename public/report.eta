@@ -37,6 +37,11 @@
       font-size: 0.85em;
       color: #6b7280;
     }
+
+    .figure {
+      margin: 8px 0;
+      break-inside: avoid;
+    }
   </style>
 
 
@@ -46,25 +51,161 @@
     <p>Author: <%= it.model.author %></p>
     <p>Date: <%= it.model.date %></p>
 
-    <h2>Geometry</h2>
-    <p>Wall height: <%= it.model.wall.height %> mm</p>
-    <p>Wall thickness: <%= it.model.wall.thickness %> mm</p>
-    <p>Foundation left: <%= it.model.foundation.left %> mm</p>
-    <p>Foundation right: <%= it.model.foundation.right %> mm</p>
-    <p>Foundation thickness: <%= it.model.foundation.thickness %> mm</p>
-    <p>Slab thickness: <%= it.model.slab.thickness %> mm</p>
-    <p>Slab angle: <%= it.model.slab.angle %>&deg;</p>
+    <h2>Preview</h2>
+    <%
+      /* Cross-section figure, drawn per running metre in the model's mm units:
+         y to the right from the toe, z up from the foundation base.
+         SVG's y axis points down, so sy() flips z. */
+      const m = it.model;
+      const FREE = 1300;   // soil drawn beyond the foundation on both sides, mm
+      const GAP = 300;     // gap between the soil edge and a pressure diagram, mm
+      const DIAG = 900;    // width drawn for the largest pressure value, mm
+      const LBL = 850;     // margin reserved for pressure value labels, mm
+
+      const fL = m.foundation.left, fT = m.foundation.thickness;
+      const wT = m.wall.thickness, wH = m.wall.height;
+      const B = fL + wT + m.foundation.right;
+      const tanA = Math.tan(m.slab.angle * Math.PI / 180);
+      const leftEdge = -FREE, rightEdge = B + FREE;
+      const rightW = rightEdge - (fL + wT);
+
+      const layerGeom = (layers) => {
+        let z = 0;
+        return layers.map((l) => { const bottom = z; z += l.thickness; return { bottom, top: z }; });
+      };
+      const layersL = layerGeom(m.groundLeft), layersR = layerGeom(m.groundRight);
+      const rightTop = layersR.length ? layersR[layersR.length - 1].top : 0;
+      const slopedTop = rightTop + rightW * tanA;
+      const slabTop = slopedTop + m.slab.thickness;
+
+      const activeP = it.results.groundPressureRight.activePressure;
+      const passiveP = it.results.groundPressureLeft.passivePressure;
+      const maxP = Math.max(0.001,
+        ...activeP.flatMap((p) => [p.bottom, p.top]),
+        ...passiveP.flatMap((p) => [p.bottom, p.top]));
+      const pScale = DIAG / maxP;
+
+      const minY = leftEdge - GAP - DIAG - LBL, maxY = rightEdge + GAP + DIAG + LBL;
+      const maxZ = Math.max(fT + wH, slabTop + 600) + 700;
+      const sy = (z) => maxZ - z;
+
+      const soilFills = ["#f0d9b5", "#e2bc8a", "#d4a066", "#c68445"];
+      const soilColor = (id) => soilFills[Math.max(0, m.materials.findIndex((x) => x.id === id)) % soilFills.length];
+      const matName = (id) => m.materials.find((x) => x.id === id)?.name ?? "?";
+      const f1 = (n) => n.toFixed(1);
+
+      const diagrams = [
+        { layers: layersR, pressure: activeP, base: rightEdge + GAP, dir: 1,
+          color: "#dc2626", marker: "rwf-active", caption: "Active pressure (K&#x2090;), kN/m&#178;" },
+        { layers: layersL, pressure: passiveP, base: leftEdge - GAP, dir: -1,
+          color: "#2563eb", marker: "rwf-passive", caption: "At-rest pressure (K&#8320;), kN/m&#178;" },
+      ];
+    %>
+    <div class="figure">
+      <svg viewBox="<%= minY %> 0 <%= maxY - minY %> <%= maxZ + 500 %>" width="100%" font-family="Arial, sans-serif" style="max-height: 130mm;">
+        <defs>
+          <marker id="rwf-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker>
+          <marker id="rwf-passive" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker>
+          <marker id="rwf-load" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/></marker>
+        </defs>
+
+        <!-- Soil layers (concrete is painted over the overlap, like the CSG cut in 3D) -->
+        <% m.groundLeft.forEach((layer, i) => { const g = layersL[i]; %>
+          <rect x="<%= leftEdge %>" y="<%= sy(g.top) %>" width="<%= fL - leftEdge %>" height="<%= g.top - g.bottom %>"
+            fill="<%= soilColor(layer.materialId) %>" stroke="#a16207" stroke-width="12"/>
+          <text x="<%= (leftEdge + fL) / 2 %>" y="<%= sy((g.bottom + g.top) / 2) + 55 %>" font-size="150" fill="#78350f" text-anchor="middle"><%= matName(layer.materialId) %></text>
+        <% }) %>
+        <% m.groundRight.forEach((layer, i) => { const g = layersR[i]; const topRightZ = i === m.groundRight.length - 1 ? slopedTop : g.top; %>
+          <polygon points="<%= fL + wT %>,<%= sy(g.bottom) %> <%= rightEdge %>,<%= sy(g.bottom) %> <%= rightEdge %>,<%= sy(topRightZ) %> <%= fL + wT %>,<%= sy(g.top) %>"
+            fill="<%= soilColor(layer.materialId) %>" stroke="#a16207" stroke-width="12"/>
+          <text x="<%= fL + wT + rightW / 2 %>" y="<%= sy((g.bottom + g.top) / 2) + 55 %>" font-size="150" fill="#78350f" text-anchor="middle"><%= matName(layer.materialId) %></text>
+        <% }) %>
+
+        <!-- Concrete: foundation, wall stem, sloped slab -->
+        <rect x="0" y="<%= sy(fT) %>" width="<%= B %>" height="<%= fT %>" fill="#b0b3b8" stroke="#4b5563" stroke-width="15"/>
+        <rect x="<%= fL %>" y="<%= sy(fT + wH) %>" width="<%= wT %>" height="<%= wH %>" fill="#b0b3b8" stroke="#4b5563" stroke-width="15"/>
+        <polygon points="<%= fL + wT %>,<%= sy(rightTop) %> <%= rightEdge %>,<%= sy(slopedTop) %> <%= rightEdge %>,<%= sy(slabTop) %> <%= fL + wT %>,<%= sy(rightTop + m.slab.thickness) %>"
+          fill="#b0b3b8" stroke="#4b5563" stroke-width="15"/>
+
+        <!-- Live load on the slab -->
+        <% for (let i = 0; i <= 6; i++) { const y = fL + wT + rightW * i / 6; const zs = rightTop + m.slab.thickness + (y - fL - wT) * tanA; %>
+          <line x1="<%= y %>" y1="<%= sy(zs + 500) %>" x2="<%= y %>" y2="<%= sy(zs + 60) %>" stroke="#16a34a" stroke-width="18" marker-end="url(#rwf-load)"/>
+        <% } %>
+        <text x="<%= fL + wT + rightW / 2 %>" y="<%= sy(slabTop + 750) %>" font-size="170" fill="#16a34a" text-anchor="middle">q&#8342; = <%= f1(m.q_k) %> kN/m&#178;</text>
+
+        <!-- Pressure diagrams -->
+        <% diagrams.forEach((d) => { const edge = (p) => d.base + d.dir * p * pScale; const anchor = d.dir === 1 ? "start" : "end"; %>
+          <% d.layers.forEach((g, i) => { const p = d.pressure[i]; const h = g.top - g.bottom; %>
+            <polygon points="<%= d.base %>,<%= sy(g.bottom) %> <%= edge(p.bottom) %>,<%= sy(g.bottom) %> <%= edge(p.top) %>,<%= sy(g.top) %> <%= d.base %>,<%= sy(g.top) %>"
+              fill="<%= d.color %>" fill-opacity="0.15" stroke="<%= d.color %>" stroke-width="12"/>
+            <% const n = Math.max(2, Math.round(h / 500)); for (let a = 0; a <= n; a++) {
+                 const t = a / n; const z = g.bottom + t * h; const pv = p.bottom + t * (p.top - p.bottom);
+                 if (pv * pScale < 120) continue; %>
+              <line x1="<%= edge(pv) %>" y1="<%= sy(z) %>" x2="<%= d.base + d.dir * 70 %>" y2="<%= sy(z) %>" stroke="<%= d.color %>" stroke-width="14" marker-end="url(#<%= d.marker %>)"/>
+            <% } %>
+            <text x="<%= edge(p.bottom) + d.dir * 100 %>" y="<%= sy(g.bottom) + 50 %>" font-size="150" fill="<%= d.color %>" text-anchor="<%= anchor %>"><%= f1(p.bottom) %></text>
+            <% if (i === d.layers.length - 1) { %>
+              <text x="<%= edge(p.top) + d.dir * 100 %>" y="<%= sy(g.top) + 50 %>" font-size="150" fill="<%= d.color %>" text-anchor="<%= anchor %>"><%= f1(p.top) %></text>
+            <% } %>
+          <% }) %>
+          <text x="<%= d.base + d.dir * (DIAG / 2 + 100) %>" y="<%= sy(maxZ - 350) %>" font-size="170" fill="<%= d.color %>" text-anchor="middle"><%~ d.caption %></text>
+        <% }) %>
+
+        <!-- Dimensions (mm); 45-degree ticks, engineering chain style -->
+        <% const dimZ = -300; const chainYs = [0, fL, fL + wT, B]; %>
+        <% chainYs.forEach((y) => { %>
+          <line x1="<%= y %>" y1="<%= sy(0) %>" x2="<%= y %>" y2="<%= sy(dimZ - 80) %>" stroke="#9ca3af" stroke-width="8"/>
+        <% }) %>
+        <line x1="0" y1="<%= sy(dimZ) %>" x2="<%= B %>" y2="<%= sy(dimZ) %>" stroke="#6b7280" stroke-width="10"/>
+        <% chainYs.forEach((y) => { %>
+          <line x1="<%= y - 60 %>" y1="<%= sy(dimZ) + 60 %>" x2="<%= y + 60 %>" y2="<%= sy(dimZ) - 60 %>" stroke="#374151" stroke-width="12"/>
+        <% }) %>
+        <% [{ a: 0, b: fL }, { a: fL, b: fL + wT }, { a: fL + wT, b: B }].forEach((d) => { %>
+          <text x="<%= (d.a + d.b) / 2 %>" y="<%= sy(dimZ) - 60 %>" font-size="140" fill="#374151" text-anchor="middle"><%= d.b - d.a %></text>
+        <% }) %>
+        <%
+          const vDims = [
+            // Wall height beside the stem, foundation thickness at the toe
+            { za: fT, zb: fT + wH, at: fL - 250 },
+            { za: 0, zb: fT, at: -250 },
+            // Ground layer thicknesses at the outer soil edges
+            ...layersL.map((g) => ({ za: g.bottom, zb: g.top, at: leftEdge + 250 })),
+            ...layersR.map((g) => ({ za: g.bottom, zb: g.top, at: rightEdge - 250 })),
+            // Slab thickness at its right end face
+            { za: slopedTop, zb: slabTop, at: rightEdge + 150 },
+          ];
+        %>
+        <% vDims.forEach((d) => { const mid = sy((d.za + d.zb) / 2); %>
+          <line x1="<%= d.at %>" y1="<%= sy(d.za) %>" x2="<%= d.at %>" y2="<%= sy(d.zb) %>" stroke="#6b7280" stroke-width="10"/>
+          <% [d.za, d.zb].forEach((z) => { %>
+            <line x1="<%= d.at - 60 %>" y1="<%= sy(z) + 60 %>" x2="<%= d.at + 60 %>" y2="<%= sy(z) - 60 %>" stroke="#374151" stroke-width="12"/>
+          <% }) %>
+          <text x="<%= d.at - 100 %>" y="<%= mid %>" transform="rotate(-90 <%= d.at - 100 %> <%= mid %>)" font-size="140" fill="#374151" text-anchor="middle"><%= d.zb - d.za %></text>
+        <% }) %>
+
+        <!-- Slab angle: arc from a dashed horizontal reference to the slab top surface -->
+        <%
+          const angleVertex = { x: fL + wT, y: sy(rightTop + m.slab.thickness) };
+          const arcR = 800;
+          const angleRad = m.slab.angle * Math.PI / 180;
+          const arcSweep = m.slab.angle >= 0 ? 0 : 1;
+        %>
+        <line x1="<%= angleVertex.x %>" y1="<%= angleVertex.y %>" x2="<%= angleVertex.x + arcR + 250 %>" y2="<%= angleVertex.y %>" stroke="#6b7280" stroke-width="10" stroke-dasharray="60 60"/>
+        <path d="M <%= angleVertex.x + arcR %> <%= angleVertex.y %> A <%= arcR %> <%= arcR %> 0 0 <%= arcSweep %> <%= angleVertex.x + arcR * Math.cos(angleRad) %> <%= angleVertex.y - arcR * Math.sin(angleRad) %>" fill="none" stroke="#374151" stroke-width="12"/>
+        <text x="<%= angleVertex.x + arcR + 350 %>" y="<%= angleVertex.y - arcR * Math.sin(angleRad / 2) %>" font-size="140" fill="#374151" text-anchor="start"><%= m.slab.angle %>&#176;</text>
+      </svg>
+    </div>
+
+    <h2>Loads</h2>
+    <p>Live load on slab q<sub>k</sub>: <%= it.model.q_k %> kN/m<sup>2</sup></p>
+    <p>Permanent surcharge (slab self-weight) q<sub>perm</sub>: <%= it.results.q_perm.toFixed(1) %> kN/m<sup>2</sup></p>
+    <p>Total surcharge q<sub>d</sub>: <%= it.results.q_d.toFixed(1) %> kN/m<sup>2</sup></p>
 
     <h2>Partial factors</h2>
     <p>Destabilizing load &gamma;<sub>G,dst</sub>: <%= it.model.gammaGdst %></p>
     <p>Variable load &gamma;<sub>Q,dst</sub>: <%= it.model.gammaQdst %></p>
     <p>Stabilizing load &gamma;<sub>G,stb</sub>: <%= it.model.gammaGstb %></p>
     <p>Sliding resistance &gamma;<sub>R,h</sub>: <%= it.model.gammaRh %></p>
-
-    <h2>Loads</h2>
-    <p>Live load on slab q<sub>k</sub>: <%= it.model.q_k %> kN/m<sup>2</sup></p>
-    <p>Permanent surcharge (slab self-weight) q<sub>perm</sub>: <%= it.results.q_perm.toFixed(1) %> kN/m<sup>2</sup></p>
-    <p>Total surcharge q<sub>d</sub>: <%= it.results.q_d.toFixed(1) %> kN/m<sup>2</sup></p>
 
     <h2>Materials</h2>
     <table>

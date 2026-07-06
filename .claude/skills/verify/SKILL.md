@@ -31,7 +31,8 @@ Useful handles:
 - Open file: `input[type=file]` is hidden — use `setInputFiles` directly.
 - Save file: `page.waitForEvent("download")` + click "Save to file".
 - Toasts: `[data-sonner-toast]` with `hasText`.
-- Report preview: click "Open Preview", grab the non-main frame, allow ~2.5s for template fetch + pagination.
+- Report preview: click "Open Preview", grab the non-main frame, allow ~2.5s for template fetch + pagination. Pagination check: count `.preview-page` in the frame (default model → 3 pages) and assert each `.preview-page-content` has `scrollHeight === clientHeight` (no overflow). The content div must stay absolutely positioned inside the aspect-ratio page or pages grow instead of splitting.
+- Cross-section figure: one inline `<svg>` in the report (page 1); its `<text>` nodes carry the pressure values, which must match the 3D canvas pressure labels.
 
 ## Gotchas
 

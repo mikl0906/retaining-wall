@@ -22,14 +22,18 @@ const previewStyle = `
   }
 
   .preview-page {
+    position: relative;
     width: min(210mm, calc(100% - 24px));
     aspect-ratio: 210 / 297;
     background: #ffffff;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   }
 
+  /* Absolutely positioned so the page keeps its A4 aspect-ratio height
+     instead of growing with the content (which broke pagination) */
   .preview-page-content {
-    height: 100%;
+    position: absolute;
+    inset: 0;
     box-sizing: border-box;
     padding: 6.734% 9.524%;
     overflow: hidden;
@@ -55,6 +59,7 @@ const previewStyle = `
     }
 
     .preview-page-content {
+      position: static;
       height: 297mm;
       padding: 20mm;
     }
