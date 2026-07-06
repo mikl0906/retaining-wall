@@ -87,6 +87,7 @@ export function Menu() {
       <ToggleGroup
         size="sm"
         variant="outline"
+        spacing={0}
         value={[theme]}
         onValueChange={(v) => {
           if (v[0] !== "light" && v[0] !== "dark" && v[0] !== "system") return;
