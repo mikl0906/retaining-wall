@@ -21,6 +21,7 @@ import { ModelInfoCard } from "./ui/ModelInfoCard";
 import { Printer } from "lucide-react";
 import { useModel } from "./modelStore";
 import { generateReport } from "./reports";
+import { ScrollArea } from "./components/ui/scroll-area";
 
 export function App() {
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -47,12 +48,16 @@ function DesktopApp() {
         <div className="absolute inset-0">
           <ModelCanvas />
         </div>
-        <div className="absolute top-4 left-4 w-100 flex flex-col gap-4">
+        <div className="absolute top-4 left-4 bottom-4 w-100 flex flex-col gap-4">
           <Menu />
-          <ModelInfoCard />
-          <PartialFactorsCard />
-          <MaterialsCard />
-          <ResultsCard />
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="flex flex-col gap-4">
+              <ModelInfoCard />
+              <PartialFactorsCard />
+              <MaterialsCard />
+              <ResultsCard />
+            </div>
+          </ScrollArea>
         </div>
         <div className="absolute top-4 right-4 flex gap-2">
           <Button size="sm" variant="outline" onClick={handlePrint}>
@@ -93,8 +98,8 @@ export function MobileApp() {
       <Drawer
         open
         snapPoints={snapPoints}
-        activeSnapPoint={snap}
-        setActiveSnapPoint={setSnap}
+        snapPoint={snap}
+        onSnapPointChange={setSnap}
         modal={false}
       >
         <DrawerContent title="menu">
@@ -105,7 +110,7 @@ export function MobileApp() {
             </DrawerDescription>
           </DrawerHeader>
 
-          <div className="no-scrollbar flex-1 overflow-y-auto px-4">
+          <div className="flex-1 overflow-y-auto px-4">
             <div className="flex flex-col gap-4 pb-4">
               <Menu />
               <PartialFactorsCard />
